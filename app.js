@@ -731,8 +731,64 @@ function initHabits() {
 }
 
 
+
+function renderSavingsVault() {
+    const curEl = document.getElementById('savings-current');
+    const goalEl = document.getElementById('savings-goal');
+    const barEl = document.getElementById('savings-bar');
+    
+    if(!curEl || !goalEl || !barEl) return;
+    
+    const current = globalState.savings.current || 0;
+    const goal = globalState.savings.goal || 100000;
+    
+    curEl.textContent = '₹' + current.toLocaleString('en-IN');
+    goalEl.textContent = '₹' + goal.toLocaleString('en-IN');
+    
+    const pct = Math.min(100, Math.max(0, (current / goal) * 100));
+    barEl.style.width = pct + '%';
+}
+
 function initFinance() {
+
     renderSavingsVault();
+    
+    // Savings Logic
+    const setGoalBtn = document.getElementById('edit-savings-goal');
+    if (setGoalBtn) {
+        setGoalBtn.onclick = () => {
+            const newGoal = prompt('Enter new savings goal:');
+            if (newGoal && !isNaN(newGoal)) {
+                globalState.savings.goal = parseFloat(newGoal);
+                renderSavingsVault();
+                saveGlobalState();
+            }
+        };
+    }
+    
+    const svAmtInput = document.getElementById('savings-input');
+    const svAddBtn = document.getElementById('add-savings');
+    
+    const addSavings = () => {
+        if(!svAmtInput) return;
+        const amt = parseFloat(svAmtInput.value);
+        if(!isNaN(amt) && amt > 0) {
+            globalState.savings.current += amt;
+            svAmtInput.value = '';
+            renderSavingsVault();
+            saveGlobalState();
+        }
+    };
+    if (svAddBtn) svAddBtn.onclick = addSavings;
+    if (svAmtInput) {
+        svAmtInput.onkeypress = (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addSavings();
+            }
+        };
+    }
+
     
     const addIncBtn = document.getElementById('add-income');
     const addExpBtn = document.getElementById('add-expense');
