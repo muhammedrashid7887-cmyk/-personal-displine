@@ -76,12 +76,12 @@ function initTabs() {
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             tabBtns.forEach(b => {
-                b.classList.remove('active', 'text-emerald-700', 'font-black', 'border-emerald-500');
+                b.classList.remove('active', 'text-amber-500', 'font-black', 'border-amber-500');
                 b.classList.add('text-gray-500', 'border-transparent');
             });
             tabContents.forEach(c => c.classList.add('hidden'));
 
-            btn.classList.add('active', 'text-emerald-700', 'font-black', 'border-emerald-500');
+            btn.classList.add('active', 'text-amber-500', 'font-black', 'border-amber-500');
             btn.classList.remove('text-gray-500', 'border-transparent');
             const targetId = btn.getAttribute('data-target');
             document.getElementById(targetId).classList.remove('hidden');
@@ -198,10 +198,10 @@ async function commitDailyProgress() {
         if(btn) {
             const orig = btn.innerHTML;
             btn.innerHTML = `<span><i class="ph-bold ph-check"></i> Saved!</span>`;
-            btn.classList.add('bg-emerald-200', 'text-emerald-800');
+            btn.classList.add('bg-amber-500/20', 'text-amber-400');
             setTimeout(() => { 
                 btn.innerHTML = orig; 
-                btn.classList.remove('bg-emerald-200', 'text-emerald-800');
+                btn.classList.remove('bg-amber-500/20', 'text-amber-400');
             }, 2000);
         }
     } catch (e) { console.error("Error saving daily progress", e); }
@@ -483,10 +483,10 @@ function initSpiritual() {
             saveGlobalState();
             
             newSaveBtn.innerHTML = '<i class="ph-bold ph-check"></i> Saved';
-            newSaveBtn.classList.add('bg-emerald-100', 'text-emerald-700');
+            newSaveBtn.classList.add('bg-emerald-100', 'text-amber-500');
             setTimeout(() => {
                 newSaveBtn.innerHTML = '<i class="ph-bold ph-floppy-disk"></i> Save Position';
-                newSaveBtn.classList.remove('bg-emerald-100', 'text-emerald-700');
+                newSaveBtn.classList.remove('bg-emerald-100', 'text-amber-500');
             }, 1500);
         });
 
