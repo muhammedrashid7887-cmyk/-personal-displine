@@ -327,11 +327,11 @@ function renderDateSlider() {
         const isSelected = (dStr === selectedDate);
         
         const card = document.createElement('div');
-        card.className = `flex flex-col items-center justify-center flex-1 min-w-[2rem] sm:min-w-[4rem] py-1.5 sm:py-3 rounded-xl sm:rounded-2xl cursor-pointer transition-all \${isSelected ? 'bg-gradient-to-b from-emerald-400 to-teal-500 text-white shadow-lg scale-105 border border-emerald-300' : 'bg-white/40 text-gray-600 hover:bg-white/80 border border-white/60'}`;
+        card.className = `flex flex-col items-center justify-center flex-1 min-w-[2rem] sm:min-w-[4rem] py-1.5 sm:py-3 rounded-xl sm:rounded-2xl cursor-pointer transition-all \${isSelected ? 'bg-gradient-to-b from-gray-900 to-black shadow-xl scale-110 border border-gray-700 z-10' : 'bg-white/70 hover:bg-white border border-white/80'}`;
         
         card.innerHTML = `
-            <span class="text-[8px] sm:text-[10px] font-black uppercase tracking-wider \${isSelected ? 'text-emerald-50' : 'text-gray-600'}">${dayName}</span>
-            <span class="text-base sm:text-2xl font-black \${isSelected ? 'text-white' : 'text-gray-700'}">${dateNum}</span>
+            <span class="text-[8px] sm:text-[10px] font-black uppercase tracking-wider \${isSelected ? 'text-emerald-400' : 'text-gray-500'}">${dayName}</span>
+            <span class="text-base sm:text-2xl font-black \${isSelected ? 'text-white' : 'text-gray-900'}">${dateNum}</span>
         `;
         
         card.addEventListener('click', () => {
