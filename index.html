@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeenVault Pro - Digital Discipline</title>
+    <!-- Tailwind CSS v4 CDN -->
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <!-- Phosphor Icons for UI -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <style type="text/tailwindcss">
+        @theme {
+            --color-primary-500: #10b981;
+            --color-primary-600: #059669;
+        }
+        
+        body {
+            background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1920&auto=format&fit=crop');
+        }
+
+        .tab-btn {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .tab-btn.active {
+            color: #047857; /* Emerald 700 */
+            font-weight: 900;
+        }
+        .tab-btn::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background-color: #10b981; /* Emerald 500 */
+        }
+    </style>
+<body class="bg-cover bg-center bg-fixed bg-no-repeat text-gray-900 transition-colors duration-500 min-h-screen flex flex-col font-sans relative" style="background-image: url('https://images.unsplash.com/photo-1542044896530-05d85be9b11a?q=80&w=2574&auto=format&fit=crop');">    <!-- Overall Dark Overlay for Contrast (optional, subtle) -->
+    <div class="fixed inset-0 bg-white/30 backdrop-blur-[2px] z-0 pointer-events-none"></div>
+
+    <!-- Authentication View -->
+    <div id="auth-view" class="flex-1 flex items-center justify-center p-4 min-h-screen relative z-10">
+        <!-- Auth Card -->
+        <div class="w-full max-w-md p-10 bg-white/50 backdrop-blur-3xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.2)] rounded-[2.5rem] transform transition-all duration-500">
+            <div class="text-center mb-8">
+                <div class="w-24 h-24 mx-auto bg-gradient-to-br from-emerald-500 to-teal-700 rounded-3xl flex items-center justify-center shadow-2xl shadow-emerald-500/40 mb-6 transform rotate-3">
+                    <i class="ph-fill ph-leaf text-5xl text-white transform -rotate-3"></i>
+                </div>
+                <h2 class="text-4xl font-black text-gray-900 tracking-tight" id="auth-title">Displine Memoranda</h2>
+                <p class="text-sm text-emerald-800 mt-2 font-bold tracking-widest uppercase">Sign In to Continue</p>
+            </div>
+            
+            <form id="auth-form" class="space-y-6">
+                <div class="space-y-2">
+                    <label class="block text-xs font-black text-gray-800 uppercase tracking-widest ml-1">Username</label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="ph-bold ph-user text-emerald-600 group-focus-within:text-emerald-500 transition-colors"></i>
+                        </div>
+                        <input type="text" id="auth-name" required placeholder="e.g. abdullah" class="w-full bg-white/60 border border-white/80 shadow-inner rounded-2xl pl-12 pr-4 py-4 text-sm font-bold text-gray-900 outline-none focus:ring-4 focus:ring-emerald-500/20 focus:bg-white transition-all placeholder-gray-500">
+                    </div>
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="block text-xs font-black text-gray-800 uppercase tracking-widest ml-1">Password</label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="ph-bold ph-lock-key text-emerald-600 group-focus-within:text-emerald-500 transition-colors"></i>
+                        </div>
+                        <input type="password" id="auth-pass" required placeholder="••••••••" class="w-full bg-white/60 border border-white/80 shadow-inner rounded-2xl pl-12 pr-4 py-4 text-sm font-bold text-gray-900 outline-none focus:ring-4 focus:ring-emerald-500/20 focus:bg-white transition-all placeholder-gray-500">
+                    </div>
+                </div>
+                
+                <button type="submit" class="relative overflow-hidden group w-full bg-gray-900 hover:bg-black text-white font-black text-lg tracking-wide py-4 rounded-2xl shadow-xl transition-all active:scale-[0.98] mt-6" id="auth-submit-btn">
+                    <span class="relative z-10 flex items-center justify-center gap-2">
+                        Access Vault <i class="ph-bold ph-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </span>
+                </button>
+            </form>
+            
+            <div class="mt-8 pt-6 border-t border-gray-300/50 text-center">
+                <p class="text-sm font-bold text-gray-700">
+                    <span id="auth-prompt-text">New to Displine Memoranda?</span> 
+                </p>
+                <button id="toggle-auth-mode" class="w-full mt-3 bg-white/80 hover:bg-white text-emerald-700 font-black py-3 rounded-xl shadow-sm border border-emerald-100 transition-all focus:outline-none uppercase tracking-widest text-xs">Create New Account</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard View -->
+    <div id="dashboard-view" class="hidden flex-1 flex flex-col w-full relative z-10">
+
+        <!-- Header / Navigation -->
+        <header class="sticky top-0 z-50 bg-white/60 backdrop-blur-2xl border-b border-white/50 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-gradient-to-br from-emerald-400 to-teal-600 rounded-lg flex items-center justify-center shadow-md">
+                        <i class="ph-bold ph-leaf text-white text-lg"></i>
+                    </div>
+                    <h1 class="text-xl font-black tracking-tight text-gray-900 hidden sm:block">Displine Memoranda</h1>
+                </div>
+
+                <!-- Date Slider Container -->
+                <div class="flex-1 max-w-xl mx-4 sm:mx-8 flex items-center justify-between">
+                    <button id="slider-prev" class="p-1 sm:p-2 text-gray-500 hover:text-emerald-600 transition-colors"><i class="ph-bold ph-caret-left text-lg"></i></button>
+                    <div id="date-slider-container" class="flex flex-1 justify-between px-1 sm:px-2 overflow-hidden gap-1 sm:gap-2">
+                        <!-- JS Populated -->
+                    </div>
+                    <button id="slider-next" class="p-1 sm:p-2 text-gray-500 hover:text-emerald-600 transition-colors"><i class="ph-bold ph-caret-right text-lg"></i></button>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <button id="logout-btn" class="text-sm font-bold text-rose-600 hover:text-white hover:bg-rose-500 bg-white/80 px-4 py-1.5 rounded-full border border-rose-200 shadow-sm transition-all">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Dashboard -->
+        <main class="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+            
+            <!-- Gamification & Analytics Dashboard (Hero) -->
+            <section class="bg-white/60 backdrop-blur-xl border border-white/80 rounded-3xl p-8 shadow-2xl mb-8 flex flex-col md:flex-row gap-8 items-center justify-between relative overflow-hidden group">
+                <div class="flex items-center gap-6 relative z-10">
+                    <div class="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-4xl shadow-lg border border-white/50 transform hover:scale-105 transition-transform duration-300">
+                        🔥
+                        <div class="absolute -top-2 -right-2 bg-white text-xs font-black px-2 py-1 rounded-full shadow text-orange-600 border border-orange-100" id="streak-badge">Top 1%</div>
+                    </div>
+                    <div>
+                        <h2 class="text-4xl font-black text-gray-900 tracking-tight" id="streak-count">0 <span class="text-xl font-bold text-gray-500">Days</span></h2>
+                        <p class="text-sm font-black text-orange-600 uppercase tracking-widest mt-1">Current Streak</p>
+                    </div>
+                </div>
+                
+                <div class="flex-1 max-w-sm w-full relative z-10">
+                    <div class="flex justify-between text-xs font-black uppercase tracking-widest text-gray-500 mb-3">
+                        <span>Consistency Rate</span>
+                        <span id="weekly-avg" class="text-emerald-600">0%</span>
+                    </div>
+                    <div class="w-full bg-white/80 rounded-full h-3 overflow-hidden shadow-inner border border-gray-100">
+                        <div id="weekly-progress-bar" class="bg-gradient-to-r from-emerald-400 to-teal-500 h-full rounded-full transition-all duration-1000 relative" style="width: 0%"></div>
+                    </div>
+                    <div class="flex justify-between mt-3 text-[10px] font-black uppercase tracking-widest text-gray-400" id="weekly-days">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sleek Tab Navigation -->
+            <div class="flex gap-8 border-b border-white/50 mb-8 overflow-x-auto pb-1 no-scrollbar">
+                <button class="tab-btn active text-sm font-bold uppercase tracking-widest py-2 text-gray-500 whitespace-nowrap flex items-center gap-2" data-target="tab-spiritual">
+                    <i class="ph-bold ph-mosque text-lg"></i> Spiritual Routine
+                </button>
+                <button class="tab-btn text-sm font-bold uppercase tracking-widest py-2 text-gray-500 whitespace-nowrap flex items-center gap-2" data-target="tab-life">
+                    <i class="ph-bold ph-leaf text-lg"></i> Life & Wealth
+                </button>
+                <button class="tab-btn text-sm font-bold uppercase tracking-widest py-2 text-gray-500 whitespace-nowrap flex items-center gap-2" data-target="tab-reflection">
+                    <i class="ph-bold ph-book-open-text text-lg"></i> Reflection
+                </button>
+            </div>
+
+            <!-- Tab 1: Spiritual Routine -->
+            <div id="tab-spiritual" class="tab-content grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
+                
+                <!-- Time-Based Routine -->
+                <section class="col-span-1 lg:col-span-2 bg-white/60 backdrop-blur-xl border border-white/80 rounded-[2rem] p-8 shadow-2xl flex flex-col gap-6">
+                    <div class="flex items-center justify-between border-b border-white/50 pb-4">
+                        <h2 class="text-2xl font-black flex items-center gap-3 text-gray-900">
+                            Daily Salah & Adhkar
+                        </h2>
+                        <div class="bg-emerald-100 text-emerald-700 font-black px-4 py-1.5 rounded-xl text-sm shadow-sm border border-emerald-200/50" id="routine-progress-text">0%</div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 gap-8">
+                        <!-- Morning -->
+                        <div class="bg-white/40 p-5 rounded-2xl border border-white shadow-sm">
+                            <div class="inline-flex items-center gap-2 bg-amber-100/80 text-amber-700 px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-widest mb-4">
+                                <i class="ph-bold ph-sun-horizon"></i> Morning
+                            </div>
+                            <div class="space-y-4 pl-1">
+                                <label class="flex items-center gap-3 cursor-pointer group"><input type="checkbox" id="tahajjud" class="w-6 h-6 accent-emerald-500 rounded border-gray-300 shadow-sm"><span class="text-sm font-bold text-gray-700 group-hover:text-emerald-600 transition-colors">Tahajjud</span></label>
+                                <label class="flex items-center gap-3 cursor-pointer group"><input type="checkbox" id="fajr-sunnah" class="w-6 h-6 accent-emerald-500 rounded border-gray-300 shadow-sm"><span class="text-sm font-bold text-gray-700 group-hover:text-emerald-600 transition-colors">2 Rak'ah Fajr Sunnah</span></label>
+                                <div class="flex items-center justify-between bg-white/60 p-2 rounded-xl border border-white">
+                                    <span class="text-sm font-bold text-gray-800 ml-2">Fajr Salah</span>
+                                    <div id="ctrl-fajrSalah" class="flex gap-1"></div>
+                                </div>
+                                <label class="flex items-center gap-3 cursor-pointer group"><input type="checkbox" id="yaseen" class="w-6 h-6 accent-emerald-500 rounded border-gray-300 shadow-sm"><span class="text-sm font-bold text-gray-700 group-hover:text-emerald-600 transition-colors">Surah Yaseen</span></label>
+                            </div>
+                        </div>
+
+                        <!-- Daytime -->
+                        <div class="bg-white/40 p-5 rounded-2xl border border-white shadow-sm">
+                            <div class="inline-flex items-center gap-2 bg-sky-100/80 text-sky-700 px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-widest mb-4">
+                                <i class="ph-bold ph-sun"></i> Daytime
+                            </div>
+                            <div class="space-y-4 pl-1">
+                                <label class="flex items-center gap-3 cursor-pointer group"><input type="checkbox" id="duha" class="w-6 h-6 accent-emerald-500 rounded border-gray-300 shadow-sm"><span class="text-sm font-bold text-gray-700 group-hover:text-emerald-600 transition-colors">Duha (Luhaa)</span></label>
+                                <div class="flex items-center justify-between bg-white/60 p-2 rounded-xl border border-white">
+                                    <span class="text-sm font-bold text-gray-800 ml-2" id="dhuhr-label">Dhuhr Salah</span>
+                                    <div id="ctrl-dhuhr" class="flex gap-1"></div>
+                                </div>
+                                <div class="flex items-center justify-between bg-white/60 p-2 rounded-xl border border-white">
+                                    <span class="text-sm font-bold text-gray-800 ml-2">Asr Salah</span>
+                                    <div id="ctrl-asr" class="flex gap-1"></div>
+                                </div>
+                                <!-- Friday Special Items -->
+                                <label id="friday-special" class="flex items-center gap-3 cursor-pointer group hidden mt-3 bg-emerald-50 p-2 rounded-xl border border-emerald-100 shadow-sm">
+                                    <input type="checkbox" id="kahf" class="w-6 h-6 accent-emerald-500 rounded border-gray-300 shadow-sm">
+                                    <span class="text-sm font-bold text-emerald-800">Read Surah Al-Kahf</span>
+                                </label>
+                                <label id="friday-salawat-container" class="flex items-center gap-3 cursor-pointer group hidden mt-2 bg-emerald-50 p-2 rounded-xl border border-emerald-100 shadow-sm">
+                                    <input type="checkbox" id="friday-salawat" class="w-6 h-6 accent-emerald-500 rounded border-gray-300 shadow-sm">
+                                    <span class="text-sm font-bold text-emerald-800">Friday Salawat (x300)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Evening & Night -->
+                        <div class="bg-white/40 p-5 rounded-2xl border border-white shadow-sm">
+                            <div class="inline-flex items-center gap-2 bg-indigo-100/80 text-indigo-700 px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-widest mb-4">
+                                <i class="ph-bold ph-moon-stars"></i> Night
+                            </div>
+                            <div class="space-y-4 pl-1">
+                                <div class="flex items-center justify-between bg-white/60 p-2 rounded-xl border border-white">
+                                    <span class="text-sm font-bold text-gray-800 ml-2">Maghrib Salah</span>
+                                    <div id="ctrl-maghrib" class="flex gap-1"></div>
+                                </div>
+                                <label class="flex items-center gap-3 cursor-pointer group"><input type="checkbox" id="mulk" class="w-6 h-6 accent-emerald-500 rounded border-gray-300 shadow-sm"><span class="text-sm font-bold text-gray-700 group-hover:text-emerald-600 transition-colors">Surah Al-Mulk</span></label>
+                                <div class="flex items-center justify-between bg-white/60 p-2 rounded-xl border border-white">
+                                    <span class="text-sm font-bold text-gray-800 ml-2">Isha Salah</span>
+                                    <div id="ctrl-isha" class="flex gap-1"></div>
+                                </div>
+                                <label class="flex items-center gap-3 cursor-pointer group"><input type="checkbox" id="witr" class="w-6 h-6 accent-emerald-500 rounded border-gray-300 shadow-sm"><span class="text-sm font-bold text-gray-700 group-hover:text-emerald-600 transition-colors">Witr Prayer</span></label>
+                                <label class="flex items-center gap-3 cursor-pointer group"><input type="checkbox" id="isha-sunnah" class="w-6 h-6 accent-emerald-500 rounded border-gray-300 shadow-sm"><span class="text-sm font-bold text-gray-700 group-hover:text-emerald-600 transition-colors">Isha Sunnah</span></label>
+                                <label id="ratib-haddad-container" class="flex items-center gap-3 cursor-pointer group"><input type="checkbox" id="ratib-haddad" class="w-6 h-6 accent-emerald-500 rounded border-gray-300 shadow-sm"><span class="text-sm font-bold text-gray-700 group-hover:text-emerald-600 transition-colors">Ratib al-Haddad</span></label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Side Panel (Dhikr, Qada, Bookmark) -->
+                <div class="col-span-1 flex flex-col gap-6">
+                    
+                    <!-- Qada Vault -->
+                    <section class="bg-white/60 backdrop-blur-xl border border-white/80 rounded-[2rem] p-6 shadow-2xl flex flex-col">
+                        <h3 class="text-sm font-black text-rose-700 uppercase tracking-widest mb-4 flex items-center gap-2">
+                            <i class="ph-bold ph-archive-box"></i> Qada Ledger
+                        </h3>
+                        <div id="qada-list" class="space-y-2 flex-1 max-h-[150px] overflow-y-auto pr-1">
+                            <!-- Populated by JS -->
+                        </div>
+                    </section>
+
+                    <!-- Dhikr Tracker -->
+                    <section class="bg-white/60 backdrop-blur-xl border border-white/80 rounded-[2rem] p-6 shadow-2xl">
+                        <h3 class="text-sm font-black text-gray-500 uppercase tracking-widest mb-4 border-b border-white/50 pb-2">Digital Tasbih</h3>
+                        <div class="space-y-4">
+                            <!-- Salawat -->
+                            <div class="flex items-center justify-between p-3 rounded-2xl bg-white shadow-sm border border-white/50">
+                                <span class="font-bold text-sm text-gray-800">Salawat</span>
+                                <div class="flex items-center gap-2">
+                                    <button id="reset-salawat" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-rose-500 transition-colors"><i class="ph-bold ph-arrow-counter-clockwise"></i></button>
+                                    <button id="btn-salawat" class="w-12 h-12 bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-500 hover:text-white rounded-xl shadow-sm font-black text-lg transition-all active:scale-95">0</button>
+                                </div>
+                            </div>
+                            <!-- Asmaul Husna -->
+                            <div class="flex items-center justify-between p-3 rounded-2xl bg-white shadow-sm border border-white/50">
+                                <span class="font-bold text-sm text-gray-800">Asmaul Husna</span>
+                                <div class="flex items-center gap-2">
+                                    <button id="reset-asmaul" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-rose-500 transition-colors"><i class="ph-bold ph-arrow-counter-clockwise"></i></button>
+                                    <button id="btn-asmaul" class="w-12 h-12 bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-500 hover:text-white rounded-xl shadow-sm font-black text-lg transition-all active:scale-95">0</button>
+                                </div>
+                            </div>
+                            <!-- Istighfar -->
+                            <div class="flex items-center justify-between p-3 rounded-2xl bg-white shadow-sm border border-white/50">
+                                <span class="font-bold text-sm text-gray-800">Istighfar</span>
+                                <div class="flex items-center gap-2">
+                                    <button id="reset-istighfar" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-rose-500 transition-colors"><i class="ph-bold ph-arrow-counter-clockwise"></i></button>
+                                    <button id="btn-istighfar" class="w-12 h-12 bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-500 hover:text-white rounded-xl shadow-sm font-black text-lg transition-all active:scale-95">0</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Quran Bookmark -->
+                    <section class="bg-white/60 backdrop-blur-xl border border-white/80 rounded-[2rem] p-6 shadow-2xl">
+                        <h3 class="text-sm font-black text-gray-500 uppercase tracking-widest mb-4 border-b border-white/50 pb-2">Quran Bookmark</h3>
+                        <div class="space-y-3">
+                            <div class="flex gap-3">
+                                <input type="text" id="quran-surah" placeholder="Surah Name" class="w-1/2 bg-white border border-white shadow-inner rounded-xl px-4 py-3 text-sm font-bold text-gray-800 focus:ring-2 focus:ring-emerald-500 outline-none transition-all">
+                                <input type="text" id="quran-ayah" placeholder="Ayah / Page" class="w-1/2 bg-white border border-white shadow-inner rounded-xl px-4 py-3 text-sm font-bold text-gray-800 focus:ring-2 focus:ring-emerald-500 outline-none transition-all">
+                            </div>
+                            <button id="save-bookmark" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-md shadow-emerald-500/20 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all flex justify-center items-center gap-2">
+                                <i class="ph-bold ph-floppy-disk"></i> Save Position
+                            </button>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- Tab 2: Life & Wealth -->
+            <div id="tab-life" class="tab-content hidden grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
+                
+                <!-- Health & Hygiene -->
+                <section class="bg-white/60 backdrop-blur-xl border border-white/80 rounded-[2rem] p-8 shadow-2xl flex flex-col gap-6">
+                    <h2 class="text-2xl font-black flex items-center gap-3 text-gray-900 border-b border-white/50 pb-4">
+                        Health & Wellness
+                    </h2>
+
+                    <div class="space-y-8">
+                        <!-- Hygiene -->
+                        <div>
+                            <h3 class="text-xs font-black text-gray-500 mb-3 uppercase tracking-widest">Dental Hygiene</h3>
+                            <div class="flex gap-4">
+                                <label class="flex-1 flex items-center justify-center gap-3 cursor-pointer group bg-white shadow-sm py-4 rounded-2xl border border-white hover:border-sky-300 transition-colors">
+                                    <input type="checkbox" id="brush-morning" class="w-6 h-6 accent-sky-500 rounded border-gray-300">
+                                    <span class="text-sm font-black text-gray-700">Morning</span>
+                                </label>
+                                <label class="flex-1 flex items-center justify-center gap-3 cursor-pointer group bg-white shadow-sm py-4 rounded-2xl border border-white hover:border-indigo-300 transition-colors">
+                                    <input type="checkbox" id="brush-night" class="w-6 h-6 accent-indigo-500 rounded border-gray-300">
+                                    <span class="text-sm font-black text-gray-700">Night</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Water -->
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="text-xs font-black text-gray-500 uppercase tracking-widest">Hydration</h3>
+                                <span class="bg-sky-100 text-sky-700 px-3 py-1 rounded-lg text-xs font-black shadow-sm" id="water-count">0 / 8 glasses</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-white shadow-inner p-5 rounded-2xl border border-gray-100" id="water-glasses">
+                                <!-- Glasses JS -->
+                            </div>
+                        </div>
+
+                        <!-- Sleep -->
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="text-xs font-black text-gray-500 uppercase tracking-widest">Sleep Tracker</h3>
+                                <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-lg text-xs font-black shadow-sm" id="sleep-display">0 hrs</span>
+                            </div>
+                            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                                <input type="range" id="sleep-range" min="0" max="12" step="0.5" value="0" class="w-full accent-indigo-500 h-3 bg-gray-200 rounded-full appearance-none cursor-pointer outline-none">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Finance Tracker -->
+                <section class="bg-white/60 backdrop-blur-xl border border-white/80 rounded-[2rem] p-8 shadow-2xl flex flex-col gap-6">
+                    <h2 class="text-2xl font-black flex items-center gap-3 text-gray-900 border-b border-white/50 pb-4">
+                        Daily Finances
+                    </h2>
+                    
+                    <!-- Today's Summary -->
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl shadow-sm text-center">
+                            <p class="text-[10px] text-emerald-700 uppercase tracking-widest font-black mb-1">Income</p>
+                            <p class="text-lg font-black text-emerald-600" id="today-income">₹0</p>
+                        </div>
+                        <div class="bg-rose-50 border border-rose-100 p-4 rounded-2xl shadow-sm text-center">
+                            <p class="text-[10px] text-rose-700 uppercase tracking-widest font-black mb-1">Expense</p>
+                            <p class="text-lg font-black text-rose-600" id="today-expense">₹0</p>
+                        </div>
+                        <div class="bg-sky-50 border border-sky-100 p-4 rounded-2xl shadow-sm text-center">
+                            <p class="text-[10px] text-sky-700 uppercase tracking-widest font-black mb-1">Balance</p>
+                            <p class="text-lg font-black text-sky-600" id="today-balance">₹0</p>
+                        </div>
+                    </div>
+
+                    <!-- Add Transaction Inline Form -->
+                    <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                        <div class="flex gap-3 mb-3">
+                            <input type="number" id="tx-amount" placeholder="Amount (₹)" class="w-1/3 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:ring-2 focus:ring-sky-500 transition-all">
+                            <input type="text" id="tx-desc" placeholder="E.g., Bus ticket, Coffee..." class="w-2/3 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:ring-2 focus:ring-sky-500 transition-all">
+                        </div>
+                        <div class="flex gap-3">
+                            <button id="add-income" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-xl text-xs font-black uppercase tracking-wide shadow-md shadow-emerald-500/20 transition-all flex justify-center items-center gap-2"><i class="ph-bold ph-plus-circle"></i> Add Income</button>
+                            <button id="add-expense" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white py-3 rounded-xl text-xs font-black uppercase tracking-wide shadow-md shadow-rose-500/20 transition-all flex justify-center items-center gap-2"><i class="ph-bold ph-minus-circle"></i> Add Expense</button>
+                        </div>
+                    </div>
+
+                    <!-- Today's Transaction List -->
+                    <div class="flex-1 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
+                        <h3 class="text-xs font-black text-gray-500 uppercase tracking-widest mb-3 border-b border-gray-100 pb-2">Today's Transactions</h3>
+                        <div id="transaction-list" class="flex-1 overflow-y-auto space-y-2 max-h-[160px] pr-1">
+                            <!-- JS Populated -->
+                            <div class="text-center text-sm font-bold text-gray-400 py-4 hidden" id="empty-transactions">No transactions today.</div>
+                        </div>
+                    </div>
+
+
+
+                    
+                    <!-- Savings Vault -->
+                    <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col mb-4">
+                        <div class="flex justify-between items-end mb-2">
+                            <h3 class="text-xs font-black text-emerald-700 uppercase tracking-widest">Savings Vault</h3>
+                            <span class="text-[10px] font-bold text-gray-400 cursor-pointer hover:text-emerald-500" id="edit-savings-goal">Set Goal</span>
+                        </div>
+                        <div class="flex justify-between items-baseline mb-2">
+                            <span class="text-2xl font-black text-gray-800" id="savings-current">₹0</span>
+                            <span class="text-xs font-bold text-gray-400">/ <span id="savings-goal">₹1,00,000</span></span>
+                        </div>
+                        <div class="w-full bg-gray-100 rounded-full h-3 mb-4 overflow-hidden">
+                            <div class="bg-gradient-to-r from-emerald-400 to-teal-500 h-3 rounded-full transition-all duration-700" id="savings-bar" style="width: 0%"></div>
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="number" id="savings-input" placeholder="Amount (₹)" class="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-400">
+                            <button id="add-savings" class="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg px-4 py-2 text-[10px] font-black uppercase tracking-wide transition-colors">Add</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Debt Ledger -->
+
+                    <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
+                        <h3 class="text-xs font-black text-gray-500 uppercase tracking-widest mb-3 border-b border-gray-100 pb-2">Debt & Credit Ledger</h3>
+                        <div id="ledger-list" class="flex-1 overflow-y-auto space-y-2 max-h-[150px] pr-1">
+                            <div class="text-center text-sm font-bold text-gray-400 py-4 hidden" id="empty-ledger">No active debts.</div>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-gray-100 flex gap-2">
+                            <input type="text" id="ledger-name" placeholder="Name" class="w-1/3 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-400">
+                            <input type="number" id="ledger-amount" placeholder="Amt (₹)" class="w-1/4 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-400">
+                            <button id="add-payable" class="flex-1 bg-rose-100 text-rose-700 hover:bg-rose-200 rounded-lg text-[10px] font-black uppercase tracking-wide transition-colors">I Owe</button>
+                            <button id="add-receivable" class="flex-1 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg text-[10px] font-black uppercase tracking-wide transition-colors">Owed To Me</button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Tab 3: Reflection -->
+            <div id="tab-reflection" class="tab-content hidden grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
+                <!-- Todo -->
+                <section class="bg-white/60 backdrop-blur-xl border border-white/80 rounded-[2rem] p-8 shadow-2xl flex flex-col h-[500px]">
+                    <h2 class="text-2xl font-black flex items-center gap-3 text-gray-900 border-b border-white/50 pb-4 mb-4">
+                        Task Manager
+                    </h2>
+                    <div class="flex gap-3 mb-5">
+                        <input type="text" id="todo-input" placeholder="What needs to be done?" class="flex-1 bg-white border border-white shadow-inner rounded-xl px-4 py-3 text-sm font-bold text-gray-800 focus:ring-2 focus:ring-sky-500 outline-none">
+                        <button id="add-todo" class="bg-sky-500 hover:bg-sky-600 text-white w-12 rounded-xl flex items-center justify-center transition-colors shadow-md shadow-sky-500/20"><i class="ph-bold ph-plus"></i></button>
+                    </div>
+                    <ul id="todo-list" class="flex-1 overflow-y-auto space-y-3 pr-2">
+                        <!-- JS -->
+                    </ul>
+                </section>
+
+                <!-- Journal -->
+                <section class="bg-white/60 backdrop-blur-xl border border-white/80 rounded-[2rem] p-8 shadow-2xl flex flex-col h-[500px]">
+                    <h2 class="text-2xl font-black flex items-center gap-3 text-gray-900 border-b border-white/50 pb-4 mb-4">
+                        End-of-Day Journal
+                    </h2>
+                    <textarea id="journal-entry" class="flex-1 w-full bg-white/70 border border-white shadow-inner rounded-2xl p-5 text-sm font-bold text-gray-800 focus:ring-2 focus:ring-purple-500 outline-none resize-none placeholder:text-gray-400" placeholder="Reflect on your day, your goals, and your mindset. Write freely..."></textarea>
+                    
+                    <div class="flex justify-between items-center mt-5">
+                        <span class="text-xs font-black text-gray-500 uppercase tracking-widest" id="journal-status"></span>
+                        <button id="save-journal" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all shadow-md shadow-purple-500/20 flex items-center gap-2">
+                            <i class="ph-bold ph-floppy-disk"></i> Save Entry
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Monthly Performance Calendar -->
+                <section class="col-span-1 lg:col-span-2 bg-white/60 backdrop-blur-xl border border-white/80 rounded-[2rem] p-8 shadow-2xl flex flex-col">
+                    <div class="flex items-center justify-between border-b border-white/50 pb-4 mb-6">
+                        <h2 class="text-2xl font-black flex items-center gap-3 text-gray-900">
+                            Performance History
+                        </h2>
+                        <div id="calendar-month-label" class="bg-white/80 px-4 py-1.5 rounded-full shadow-sm text-sm font-black text-gray-600 uppercase tracking-widest border border-gray-200">
+                            Loading...
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-7 gap-2 text-center text-xs font-black text-gray-400 mb-3 uppercase tracking-widest">
+                        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                    </div>
+                    <div id="calendar-grid" class="grid grid-cols-7 gap-2">
+                        <!-- JS Populated -->
+                    </div>
+                    
+                    <div class="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-white/50">
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-emerald-500"></div><span class="text-[10px] font-bold text-gray-500 uppercase">Excellent (>80%)</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-amber-400"></div><span class="text-[10px] font-bold text-gray-500 uppercase">Good (>40%)</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-rose-500"></div><span class="text-[10px] font-bold text-gray-500 uppercase">Missed</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-white border border-gray-200"></div><span class="text-[10px] font-bold text-gray-500 uppercase">No Data</span></div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- Save Button (Sticky Bottom Right) -->
+        <button id="save-progress-btn" class="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black px-6 py-4 rounded-full shadow-[0_8px_30px_rgb(16,185,129,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center gap-3 text-sm uppercase tracking-widest border border-white/20">
+            <span>🚀 Save Today's Progress</span>
+        </button>
+    </div> <!-- End Dashboard View -->
+
+    <style>
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+
+    <!-- Firebase SDKs (Compat version for file:// protocol support) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
