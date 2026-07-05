@@ -755,6 +755,7 @@ function initFinance() {
             descInput.value = '';
             updateFinanceDisplay();
             renderTransactions();
+            commitDailyProgress();
         }
     };
 
@@ -933,7 +934,8 @@ function initTodos() {
         if(text) {
             globalState.todos.push({ text, done: false });
             input.value = '';
-             renderTodos();
+            renderTodos();
+            saveGlobalState();
         }
     };
 
@@ -957,6 +959,7 @@ function initJournal() {
         nSaveJ.addEventListener('click', () => {
             const input = document.getElementById('journal-input');
             dailyState.journal = input.value;
+            commitDailyProgress();
             journalStatus.textContent = 'Saved at ' + new Date().toLocaleTimeString();
         });
     }
