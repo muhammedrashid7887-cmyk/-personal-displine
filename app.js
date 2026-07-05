@@ -189,12 +189,24 @@ async function loadData() {
     if (useLocalStorageFallback) {
         const gSaved = localStorage.getItem(`disciplineGlobal_${currentUser.uid}`);
         if (gSaved) {
-            const parsed = JSON.parse(gSaved);
+            
+            let parsed = {};
+            try {
+                parsed = JSON.parse(gSaved);
+                if (typeof parsed !== 'object' || parsed === null) parsed = {};
+            } catch(e) { console.error("Corrupted global state, resetting"); }
+
             globalState = { ...defaultGlobalState, ...parsed };
         }
         const dSaved = localStorage.getItem(`disciplineDaily_${currentUser.uid}_${selectedDate}`);
         if (dSaved) {
-            const parsed = JSON.parse(dSaved);
+            
+            let parsed = {};
+            try {
+                parsed = JSON.parse(dSaved);
+                if (typeof parsed !== 'object' || parsed === null) parsed = {};
+            } catch(e) { console.error("Corrupted daily state, resetting"); }
+
             dailyState = { ...defaultDailyState, ...parsed, spiritual: { ...defaultDailyState.spiritual, ...parsed.spiritual } };
         } else {
             dailyState = JSON.parse(JSON.stringify(defaultDailyState));
