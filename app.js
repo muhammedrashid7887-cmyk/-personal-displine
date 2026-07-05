@@ -154,6 +154,22 @@ function initAuth() {
             }
 
             if (useLocalStorageFallback) {
+                let accounts = JSON.parse(localStorage.getItem('disciplineAccounts') || '{}');
+                
+                if (!isLoginMode) {
+                    if (accounts[email]) {
+                        if (errorBox && errorText) { errorBox.classList.remove('hidden'); errorText.textContent = "Account already exists! Please Sign In."; }
+                        return;
+                    }
+                    accounts[email] = { password: password };
+                    localStorage.setItem('disciplineAccounts', JSON.stringify(accounts));
+                } else {
+                    if (!accounts[email] || accounts[email].password !== password) {
+                        if (errorBox && errorText) { errorBox.classList.remove('hidden'); errorText.textContent = "Invalid username or password."; }
+                        return;
+                    }
+                }
+
                 localStorage.setItem('disciplineSession', email);
                 currentUser = { uid: email };
                 nameInput.value = ''; passInput.value = '';
