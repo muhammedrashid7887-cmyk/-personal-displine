@@ -2,8 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DeenVault Pro - Digital Discipline</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#10b981">
+    <link rel="manifest" href="manifest.json">
+    <title>Displine Memoranda</title>
     <!-- Tailwind CSS v4 CDN -->
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
     <!-- Phosphor Icons for UI -->
@@ -104,9 +108,9 @@
                 </div>
 
                 <!-- Date Slider Container -->
-                <div class="flex-1 max-w-xl mx-4 sm:mx-8 flex items-center justify-between">
+                <div class="flex-1 max-w-xl mx-1 sm:mx-8 flex items-center justify-between">
                     <button id="slider-prev" class="p-1 sm:p-2 text-gray-500 hover:text-emerald-600 transition-colors"><i class="ph-bold ph-caret-left text-lg"></i></button>
-                    <div id="date-slider-container" class="flex flex-1 justify-between px-1 sm:px-2 overflow-x-auto no-scrollbar gap-2">
+                    <div id="date-slider-container" class="flex flex-1 justify-between px-0 sm:px-2 flex-1 gap-1 sm:gap-2">
                         <!-- JS Populated -->
                     </div>
                     <button id="slider-next" class="p-1 sm:p-2 text-gray-500 hover:text-emerald-600 transition-colors"><i class="ph-bold ph-caret-right text-lg"></i></button>

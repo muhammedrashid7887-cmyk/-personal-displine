@@ -315,11 +315,11 @@ function renderDateSlider() {
         const isSelected = (dStr === selectedDate);
         
         const card = document.createElement('div');
-        card.className = `flex flex-col items-center justify-center min-w-[4rem] py-3 rounded-2xl cursor-pointer transition-all \${isSelected ? 'bg-gradient-to-b from-emerald-400 to-teal-500 text-white shadow-lg scale-105 border border-emerald-300' : 'bg-white/40 text-gray-600 hover:bg-white/80 border border-white/60'}`;
+        card.className = `flex flex-col items-center justify-center flex-1 min-w-[2rem] sm:min-w-[4rem] py-1.5 sm:py-3 rounded-xl sm:rounded-2xl cursor-pointer transition-all \${isSelected ? 'bg-gradient-to-b from-emerald-400 to-teal-500 text-white shadow-lg scale-105 border border-emerald-300' : 'bg-white/40 text-gray-600 hover:bg-white/80 border border-white/60'}`;
         
         card.innerHTML = `
-            <span class="text-[10px] font-black uppercase tracking-wider \${isSelected ? 'text-emerald-50' : 'text-gray-600'}">${dayName}</span>
-            <span class="text-2xl font-black \${isSelected ? 'text-white' : 'text-gray-700'}">${dateNum}</span>
+            <span class="text-[8px] sm:text-[10px] font-black uppercase tracking-wider \${isSelected ? 'text-emerald-50' : 'text-gray-600'}">${dayName}</span>
+            <span class="text-base sm:text-2xl font-black \${isSelected ? 'text-white' : 'text-gray-700'}">${dateNum}</span>
         `;
         
         card.addEventListener('click', () => {
@@ -615,7 +615,7 @@ function renderQadaVault() {
         el.innerHTML = `
             <div>
                 <span class="text-sm font-bold text-rose-800">${q.name}</span>
-                <span class="text-[10px] text-rose-500 ml-2">${q.date}</span>
+                <span class="text-[8px] sm:text-[10px] text-rose-500 ml-2">${q.date}</span>
             </div>
             <button onclick="completeQada(${realIdx})" class="text-[10px] bg-rose-200 text-rose-800 hover:bg-emerald-500 hover:text-white px-2 py-1 rounded transition-colors font-bold">Make Up</button>
         `;
@@ -815,7 +815,7 @@ function renderLedger() {
                 </div>
                 <div class="flex flex-col">
                     <span class="text-xs font-bold text-gray-800 ${item.settled ? 'line-through text-gray-600' : ''}">${item.name}</span>
-                    <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">${typeText}</span>
+                    <span class="text-[8px] sm:text-[10px] text-gray-500 font-bold uppercase tracking-widest">${typeText}</span>
                 </div>
             </div>
             <div class="flex items-center gap-2">
