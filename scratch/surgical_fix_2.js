@@ -1,7 +1,7 @@
 const fs = require('fs');
 let code = fs.readFileSync('c:/Users/HP/Pictures/Screenshots/displine/app.js', 'utf8');
 
-const lines = code.split('\\n');
+const lines = code.split('\n');
 let startIdx = -1;
 let endIdx = -1;
 
@@ -138,7 +138,7 @@ if (startIdx !== -1 && endIdx !== -1) {
         ...lines.slice(endIdx)
     ];
 
-    fs.writeFileSync('c:/Users/HP/Pictures/Screenshots/displine/app.js', finalLines.join('\\n'));
+    fs.writeFileSync('c:/Users/HP/Pictures/Screenshots/displine/app.js', finalLines.join('\n'));
     console.log("Successfully rebuilt initAuth and saveGlobalState");
 } else {
     console.log("Failed to find start or end bounds. startIdx: " + startIdx + ", endIdx: " + endIdx);
