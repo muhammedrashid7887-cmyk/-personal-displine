@@ -90,108 +90,45 @@ function initTabs() {
 }
 
 
+
 function initAuth() {
     const authView = document.getElementById('auth-view');
     const dashboardView = document.getElementById('dashboard-view');
     const authForm = document.getElementById('auth-form');
-    const authTitle = document.getElementById('auth-title');
-    const authSubmitBtn = document.getElementById('auth-submit-btn');
-    const toggleAuthModeBtn = document.getElementById('toggle-auth-mode');
-    const authPromptText = document.getElementById('auth-prompt-text');
     const nameInput = document.getElementById('auth-name');
     const passInput = document.getElementById('auth-pass');
     const logoutBtn = document.getElementById('logout-btn');
-    const errorBox = document.getElementById('auth-error-box');
-    const errorText = document.getElementById('auth-error-text');
 
-    let isLoginMode = true;
+    // Auto-login if session exists
+    const session = localStorage.getItem('disciplineSession');
+    if (session) {
+        currentUser = { uid: session };
+        showDashboard();
+    }
 
-    if (useLocalStorageFallback) {
-        const session = localStorage.getItem('disciplineSession');
-        if (session) {
-            currentUser = { uid: session };
+    if (authForm) {
+        authForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const rawName = nameInput.value.trim() || 'Guest';
+            
+            // ANY name and password lets them in instantly.
+            localStorage.setItem('disciplineSession', rawName);
+            currentUser = { uid: rawName };
+            
+            nameInput.value = ''; 
+            passInput.value = '';
+            
             showDashboard();
-        }
-    } else if (auth) {
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                currentUser = user;
-                showDashboard();
-            } else {
-                currentUser = null;
-                document.getElementById('auth-view').classList.remove('hidden');
-                document.getElementById('dashboard-view').classList.add('hidden');
-            }
         });
     }
 
-    toggleAuthModeBtn.addEventListener('click', () => {
-        isLoginMode = !isLoginMode;
-        authTitle.textContent = isLoginMode ? 'Welcome Back' : 'Create Account';
-        authSubmitBtn.innerHTML = isLoginMode 
-            ? `<span class="relative z-10 flex items-center justify-center gap-2">Unlock Vault <i class="ph-bold ph-arrow-right group-hover:translate-x-1 transition-transform"></i></span>` 
-            : `<span class="relative z-10 flex items-center justify-center gap-2">Sign Up <i class="ph-bold ph-user-plus group-hover:scale-110 transition-transform"></i></span>`;
-        authPromptText.textContent = isLoginMode ? "New to Displine Memoranda?" : "Already have an account?";
-        toggleAuthModeBtn.textContent = isLoginMode ? "Create New Account" : "Sign In Here";
-        if(errorBox) errorBox.classList.add('hidden');
-    });
-
-    authForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const rawName = nameInput.value.trim();
-        const password = passInput.value;
-        if(errorBox) errorBox.classList.add('hidden');
-        
-        let email = rawName;
-        if (!email.includes('@')) {
-            email = rawName.toLowerCase().replace(/[^a-z0-9]/g, '') + '@displine.local';
-        }
-
-        if (useLocalStorageFallback) {
-            localStorage.setItem('disciplineSession', email);
-            currentUser = { uid: email };
-            nameInput.value = ''; passInput.value = '';
-            showDashboard();
-            return;
-        }
-
-        try {
-            if (!isLoginMode) {
-                await auth.createUserWithEmailAndPassword(email, password);
-                nameInput.value = ''; passInput.value = '';
-            } else {
-                await auth.signInWithEmailAndPassword(email, password);
-                nameInput.value = ''; passInput.value = '';
-            }
-        } catch (error) {
-            console.error("Auth Error:", error);
-            if(errorBox && errorText) {
-                errorBox.classList.remove('hidden');
-                errorText.textContent = error.message;
-            } else {
-                alert(error.message);
-            }
-        }
-    });
-
-    logoutBtn.addEventListener('click', () => {
-        if (useLocalStorageFallback) {
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
             localStorage.removeItem('disciplineSession');
             location.reload();
-        } else {
-            auth.signOut().then(() => location.reload());
-        }
-    });
-}
-
-async function saveGlobalState() {
-
-    if (useLocalStorageFallback) {
-        localStorage.setItem(`disciplineGlobal_${currentUser.uid}`, JSON.stringify(globalState));
-    } else {
-        try {
-            await db.collection('users').doc(currentUser.uid).collection('global').doc('data').set(globalState, { merge: true });
-        } catch (e) {}
+        });
+    }
+} catch (e) {}
     }
 }
 
