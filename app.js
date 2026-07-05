@@ -247,24 +247,6 @@ async function commitDailyProgress() {
         }
     } catch (e) { console.error("Error saving daily progress", e); }
 }
- {}
-    }
-    
-    updateRoutineProgress();
-    updateAnalytics();
-    renderCalendar();
-    renderQadaVault();
-
-    if(btn) {
-        setTimeout(() => {
-            btn.innerHTML = `<span>✅ Saved!</span>`;
-            setTimeout(() => { 
-                updateSaveButtonText();
-            }, 2000);
-        }, 500);
-    }
-}
-
 
 let sliderCenterDate = new Date(); // Controls the 7-day window
 
