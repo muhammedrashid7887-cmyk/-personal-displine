@@ -89,6 +89,7 @@ function initTabs() {
     });
 }
 
+
 function initAuth() {
     const authView = document.getElementById('auth-view');
     const dashboardView = document.getElementById('dashboard-view');
@@ -100,21 +101,21 @@ function initAuth() {
     const nameInput = document.getElementById('auth-name');
     const passInput = document.getElementById('auth-pass');
     const logoutBtn = document.getElementById('logout-btn');
+    const errorBox = document.getElementById('auth-error-box');
+    const errorText = document.getElementById('auth-error-text');
 
     let isLoginMode = true;
-
-    const session = localStorage.getItem('disciplineSession');
-    if (session) {
-        currentUser = { uid: session }; 
-        showDashboard();
-    }
 
     if (auth) {
         auth.onAuthStateChanged((user) => {
             if (user) {
                 currentUser = user;
-                useLocalStorageFallback = false;
                 showDashboard();
+            } else {
+                currentUser = null;
+                // Force user to login screen
+                document.getElementById('auth-view').classList.remove('hidden');
+                document.getElementById('dashboard-view').classList.add('hidden');
             }
         });
     }
@@ -123,59 +124,50 @@ function initAuth() {
         isLoginMode = !isLoginMode;
         authTitle.textContent = isLoginMode ? 'Welcome Back' : 'Create Account';
         authSubmitBtn.innerHTML = isLoginMode 
-            ? `<span class="relative z-10 flex items-center justify-center gap-2">Sign In <i class="ph-bold ph-arrow-right group-hover:translate-x-1 transition-transform"></i></span>` 
+            ? `<span class="relative z-10 flex items-center justify-center gap-2">Unlock Vault <i class="ph-bold ph-arrow-right group-hover:translate-x-1 transition-transform"></i></span>` 
             : `<span class="relative z-10 flex items-center justify-center gap-2">Sign Up <i class="ph-bold ph-user-plus group-hover:scale-110 transition-transform"></i></span>`;
-        authPromptText.textContent = isLoginMode ? "Don't have an account?" : "Already have an account?";
-        toggleAuthModeBtn.textContent = isLoginMode ? "Sign Up Here" : "Sign In Here";
+        authPromptText.textContent = isLoginMode ? "New to Displine Memoranda?" : "Already have an account?";
+        toggleAuthModeBtn.textContent = isLoginMode ? "Create New Account" : "Sign In Here";
+        if(errorBox) errorBox.classList.add('hidden');
     });
 
     authForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const rawName = nameInput.value.trim();
         const password = passInput.value;
+        if(errorBox) errorBox.classList.add('hidden');
         
-        // Convert username to a dummy email for Firebase Auth if no @ is present
         let email = rawName;
         if (!email.includes('@')) {
             email = rawName.toLowerCase().replace(/[^a-z0-9]/g, '') + '@displine.local';
         }
 
-        if (useLocalStorageFallback) {
-            localStorage.setItem('disciplineSession', email);
-            currentUser = { uid: email };
-            nameInput.value = ''; passInput.value = '';
-            showDashboard();
-            return;
-        }
-
         try {
             if (!isLoginMode) {
                 await auth.createUserWithEmailAndPassword(email, password);
-                alert("Account created successfully!");
+                nameInput.value = ''; passInput.value = '';
             } else {
                 await auth.signInWithEmailAndPassword(email, password);
+                nameInput.value = ''; passInput.value = '';
             }
         } catch (error) {
-            console.warn("Falling back to local storage auth...");
-            useLocalStorageFallback = true;
-            localStorage.setItem('disciplineSession', email);
-            currentUser = { uid: email };
-            showDashboard();
+            console.error("Auth Error:", error);
+            if(errorBox && errorText) {
+                errorBox.classList.remove('hidden');
+                errorText.textContent = error.message;
+            } else {
+                alert(error.message);
+            }
         }
     });
 
     logoutBtn.addEventListener('click', () => {
-        if (useLocalStorageFallback) {
-            localStorage.removeItem('disciplineSession');
-            location.reload();
-        } else {
-            auth.signOut().then(() => location.reload());
-        }
+        auth.signOut().then(() => location.reload());
     });
 }
 
-
 async function saveGlobalState() {
+
     if (useLocalStorageFallback) {
         localStorage.setItem(`disciplineGlobal_${currentUser.uid}`, JSON.stringify(globalState));
     } else {
@@ -227,55 +219,35 @@ async function loadData() {
     }
 }
 
+
 async function commitDailyProgress() {
-    const btn = document.getElementById('save-progress-btn');
-    if(btn) btn.innerHTML = `<span><i class="ph-bold ph-spinner animate-spin"></i> Saving...</span>`;
-
-    const rate = calculateCompletionRate();
-    const historyIndex = globalState.history.findIndex(h => h.date === selectedDate);
-    if(historyIndex >= 0) {
-        globalState.history[historyIndex].rate = rate;
-    } else {
-        globalState.history.push({ date: selectedDate, rate: rate });
-    }
-
-    // --- QADA SYNC RECONCILIATION ---
-    // If user changed a prayer to 'ada' on a past date, remove it from Qada Vault
-    const obligatories = ['fajrSalah', 'dhuhr', 'asr', 'maghrib', 'isha'];
-    obligatories.forEach(k => {
-        if (dailyState.spiritual[k] === 'ada') {
-            const pName = k === 'dhuhr' && new Date(selectedDate).getDay() === 5 ? "Jumu'ah Salah" : 
-                          k === 'fajrSalah' ? 'Fajr Salah' : 
-                          k.charAt(0).toUpperCase() + k.slice(1) + " Salah";
-            
-            // Find in qadaVault and remove
-            const qIdx = globalState.qadaVault.findIndex(q => q.date === selectedDate && q.name === pName);
-            if (qIdx >= 0) {
-                globalState.qadaVault.splice(qIdx, 1);
-            }
+    if (!currentUser) return;
+    try {
+        await db.collection('users').doc(currentUser.uid).collection('daily').doc(selectedDate).set(dailyState, { merge: true });
+        
+        const rate = calculateCompletionRate();
+        const hIdx = globalState.history.findIndex(h => h.date === selectedDate);
+        if (hIdx >= 0) {
+            globalState.history[hIdx].rate = rate;
+        } else {
+            globalState.history.push({ date: selectedDate, rate });
         }
-        // If changed TO qada on a past date, add it if not exists
-        if (dailyState.spiritual[k] === 'qada') {
-            const pName = k === 'dhuhr' && new Date(selectedDate).getDay() === 5 ? "Jumu'ah Salah" : 
-                          k === 'fajrSalah' ? 'Fajr Salah' : 
-                          k.charAt(0).toUpperCase() + k.slice(1) + " Salah";
-            
-            const qIdx = globalState.qadaVault.findIndex(q => q.date === selectedDate && q.name === pName);
-            if (qIdx === -1) {
-                globalState.qadaVault.push({ name: pName, date: selectedDate, completed: false });
-            }
+        
+        await saveGlobalState();
+        
+        const btn = document.getElementById('save-progress-btn');
+        if(btn) {
+            const orig = btn.innerHTML;
+            btn.innerHTML = `<span><i class="ph-bold ph-check"></i> Saved!</span>`;
+            btn.classList.add('bg-emerald-200', 'text-emerald-800');
+            setTimeout(() => { 
+                btn.innerHTML = orig; 
+                btn.classList.remove('bg-emerald-200', 'text-emerald-800');
+            }, 2000);
         }
-    });
-    // ---------------------------------
-
-    if (useLocalStorageFallback) {
-        localStorage.setItem(`disciplineGlobal_${currentUser.uid}`, JSON.stringify(globalState));
-        localStorage.setItem(`disciplineDaily_${currentUser.uid}_${selectedDate}`, JSON.stringify(dailyState));
-    } else {
-        try {
-            await db.collection('users').doc(currentUser.uid).collection('global').doc('data').set(globalState, { merge: true });
-            await db.collection('users').doc(currentUser.uid).collection('dailyLogs').doc(selectedDate).set(dailyState, { merge: true });
-        } catch (e) {}
+    } catch (e) { console.error("Error saving daily progress", e); }
+}
+ {}
     }
     
     updateRoutineProgress();
