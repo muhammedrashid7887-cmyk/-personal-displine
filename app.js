@@ -106,14 +106,19 @@ function initAuth() {
 
     let isLoginMode = true;
 
-    if (auth) {
+    if (useLocalStorageFallback) {
+        const session = localStorage.getItem('disciplineSession');
+        if (session) {
+            currentUser = { uid: session };
+            showDashboard();
+        }
+    } else if (auth) {
         auth.onAuthStateChanged((user) => {
             if (user) {
                 currentUser = user;
                 showDashboard();
             } else {
                 currentUser = null;
-                // Force user to login screen
                 document.getElementById('auth-view').classList.remove('hidden');
                 document.getElementById('dashboard-view').classList.add('hidden');
             }
@@ -142,6 +147,14 @@ function initAuth() {
             email = rawName.toLowerCase().replace(/[^a-z0-9]/g, '') + '@displine.local';
         }
 
+        if (useLocalStorageFallback) {
+            localStorage.setItem('disciplineSession', email);
+            currentUser = { uid: email };
+            nameInput.value = ''; passInput.value = '';
+            showDashboard();
+            return;
+        }
+
         try {
             if (!isLoginMode) {
                 await auth.createUserWithEmailAndPassword(email, password);
@@ -162,7 +175,12 @@ function initAuth() {
     });
 
     logoutBtn.addEventListener('click', () => {
-        auth.signOut().then(() => location.reload());
+        if (useLocalStorageFallback) {
+            localStorage.removeItem('disciplineSession');
+            location.reload();
+        } else {
+            auth.signOut().then(() => location.reload());
+        }
     });
 }
 
@@ -223,7 +241,11 @@ async function loadData() {
 async function commitDailyProgress() {
     if (!currentUser) return;
     try {
-        await db.collection('users').doc(currentUser.uid).collection('daily').doc(selectedDate).set(dailyState, { merge: true });
+        if (useLocalStorageFallback) {
+            localStorage.setItem(`disciplineDaily_${currentUser.uid}_${selectedDate}`, JSON.stringify(dailyState));
+        } else {
+            await db.collection('users').doc(currentUser.uid).collection('daily').doc(selectedDate).set(dailyState, { merge: true });
+        }
         
         const rate = calculateCompletionRate();
         const hIdx = globalState.history.findIndex(h => h.date === selectedDate);
