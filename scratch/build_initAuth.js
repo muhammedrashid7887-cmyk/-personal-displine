@@ -1,7 +1,7 @@
 const fs = require('fs');
 let code = fs.readFileSync('c:/Users/HP/Pictures/Screenshots/displine/app.js', 'utf8');
 
-const lines = code.split('\\n');
+const lines = code.split('\n');
 let startIdx = -1;
 let endIdx = -1;
 
@@ -16,7 +16,7 @@ for (let i = 0; i < lines.length; i++) {
 }
 
 if (startIdx !== -1 && endIdx !== -1) {
-    const newInitAuthLines = \`
+    const newInitAuthLines = `
 function initAuth() {
     const authView = document.getElementById('auth-view');
     const dashboardView = document.getElementById('dashboard-view');
@@ -55,13 +55,15 @@ function initAuth() {
     if (toggleAuthModeBtn) {
         toggleAuthModeBtn.addEventListener('click', () => {
             isLoginMode = !isLoginMode;
-            if(authTitle) authTitle.textContent = isLoginMode ? 'Welcome Back' : 'Create Account';
+            if(authTitle) authTitle.textContent = isLoginMode ? 'Sign In' : 'Sign Up';
             if(authSubmitBtn) authSubmitBtn.innerHTML = isLoginMode 
-                ? '<span class="relative z-10 flex items-center justify-center gap-2">Unlock Vault <i class="ph-bold ph-arrow-right group-hover:translate-x-1 transition-transform"></i></span>' 
-                : '<span class="relative z-10 flex items-center justify-center gap-2">Sign Up <i class="ph-bold ph-user-plus group-hover:scale-110 transition-transform"></i></span>';
-            if(authPromptText) authPromptText.textContent = isLoginMode ? "New to Displine Memoranda?" : "Already have an account?";
+                ? 'Sign In <i class="ph-bold ph-arrow-right text-xl"></i>' 
+                : 'Sign Up <i class="ph-bold ph-user-plus text-xl"></i>';
+            if(authPromptText) authPromptText.textContent = isLoginMode ? "Don't have an account?" : "Already have an account?";
             if(toggleAuthModeBtn) toggleAuthModeBtn.textContent = isLoginMode ? "Create New Account" : "Sign In Here";
             if(errorBox) errorBox.classList.add('hidden');
+            const authSubtitle = document.getElementById('auth-subtitle');
+            if (authSubtitle) authSubtitle.style.display = isLoginMode ? 'block' : 'none';
         });
     }
 
@@ -116,9 +118,8 @@ function initAuth() {
         });
     }
 }
-\`.trim().split('\\n');
+`.trim().split('\n');
 
-    // Replace lines from startIdx to endIdx - 1
     const newCodeLines = [
         ...lines.slice(0, startIdx),
         ...newInitAuthLines,
@@ -126,7 +127,7 @@ function initAuth() {
         ...lines.slice(endIdx)
     ];
 
-    fs.writeFileSync('c:/Users/HP/Pictures/Screenshots/displine/app.js', newCodeLines.join('\\n'));
+    fs.writeFileSync('c:/Users/HP/Pictures/Screenshots/displine/app.js', newCodeLines.join('\n'));
     console.log("Successfully rebuilt initAuth using line indices!");
 } else {
     console.log("Failed to find start or end bounds.");
