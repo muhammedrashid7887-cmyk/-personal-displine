@@ -729,6 +729,51 @@ function initHabits() {
     }
 }
 
+
+function initFinance() {
+    renderSavingsVault();
+    
+    const addIncBtn = document.getElementById('add-income');
+    const addExpBtn = document.getElementById('add-expense');
+    const amtInput = document.getElementById('tx-amount');
+    const descInput = document.getElementById('tx-desc');
+
+    const addTransaction = (type) => {
+        if(!amtInput || !descInput) return;
+        const amount = parseFloat(amtInput.value);
+        const desc = descInput.value.trim() || (type === 'income' ? 'Income' : 'Expense');
+        if (!isNaN(amount) && amount > 0) {
+            dailyState.finances.transactions.push({
+                id: Date.now(),
+                type,
+                amount,
+                desc,
+                date: new Date().toLocaleDateString('en-US')
+            });
+            amtInput.value = '';
+            descInput.value = '';
+            updateFinanceDisplay();
+            renderTransactions();
+        }
+    };
+
+    if (addIncBtn) {
+        const newAddInc = addIncBtn.cloneNode(true);
+        addIncBtn.parentNode.replaceChild(newAddInc, addIncBtn);
+        newAddInc.addEventListener('click', () => addTransaction('income'));
+    }
+    
+    if (addExpBtn) {
+        const newAddExp = addExpBtn.cloneNode(true);
+        addExpBtn.parentNode.replaceChild(newAddExp, addExpBtn);
+        newAddExp.addEventListener('click', () => addTransaction('expense'));
+    }
+    
+    updateFinanceDisplay();
+    renderTransactions();
+    renderLedger();
+}
+
 function updateFinanceDisplay() {
     const today = new Date().toLocaleDateString('en-US');
     let income = 0;
