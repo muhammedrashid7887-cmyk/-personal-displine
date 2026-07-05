@@ -315,11 +315,11 @@ function renderDateSlider() {
         const isSelected = (dStr === selectedDate);
         
         const card = document.createElement('div');
-        card.className = `flex flex-col items-center justify-center min-w-[3.5rem] py-2 rounded-2xl cursor-pointer transition-all \${isSelected ? 'bg-gradient-to-b from-emerald-400 to-teal-500 text-white shadow-lg scale-105 border border-emerald-300' : 'bg-white/40 text-gray-600 hover:bg-white/80 border border-white/60'}`;
+        card.className = `flex flex-col items-center justify-center min-w-[4rem] py-3 rounded-2xl cursor-pointer transition-all \${isSelected ? 'bg-gradient-to-b from-emerald-400 to-teal-500 text-white shadow-lg scale-105 border border-emerald-300' : 'bg-white/40 text-gray-600 hover:bg-white/80 border border-white/60'}`;
         
         card.innerHTML = `
-            <span class="text-[10px] font-black uppercase tracking-wider \${isSelected ? 'text-emerald-50' : 'text-gray-400'}">${dayName}</span>
-            <span class="text-xl font-black \${isSelected ? 'text-white' : 'text-gray-700'}">${dateNum}</span>
+            <span class="text-[10px] font-black uppercase tracking-wider \${isSelected ? 'text-emerald-50' : 'text-gray-600'}">${dayName}</span>
+            <span class="text-2xl font-black \${isSelected ? 'text-white' : 'text-gray-700'}">${dateNum}</span>
         `;
         
         card.addEventListener('click', () => {
@@ -441,7 +441,7 @@ function renderCalendar() {
             rate = historyEntry.rate;
         }
 
-        let bgClass = "bg-white border-gray-100 text-gray-400";
+        let bgClass = "bg-white border-gray-100 text-gray-600";
         if (rate !== null) {
             if (rate >= 80) bgClass = "bg-emerald-500 border-emerald-600 text-white shadow-sm font-black";
             else if (rate >= 40) bgClass = "bg-amber-400 border-amber-500 text-white shadow-sm font-black";
@@ -481,7 +481,7 @@ function updateAnalytics() {
         const hist = globalState.history.find(h => h.date === dStr);
         const rate = hist ? hist.rate : 0;
         
-        let color = 'text-gray-400';
+        let color = 'text-gray-600';
         if (rate >= 80) color = 'text-emerald-600 font-black';
         else if (rate >= 40) color = 'text-amber-500 font-bold';
         
@@ -585,7 +585,7 @@ function renderPrayerState(key) {
     if (!container) return;
     const current = dailyState.spiritual[key];
     
-    const pendingCls = current === 'pending' ? 'border-gray-500 text-gray-700 bg-gray-100 font-bold shadow-inner' : 'border-gray-300 text-gray-400 hover:border-gray-400 bg-white/50';
+    const pendingCls = current === 'pending' ? 'border-gray-500 text-gray-700 bg-gray-100 font-bold shadow-inner' : 'border-gray-300 text-gray-600 hover:border-gray-400 bg-white/50';
     const adaCls = current === 'ada' ? 'bg-emerald-500 text-white font-bold shadow-md' : 'border-emerald-200 text-emerald-600 bg-emerald-50 hover:bg-emerald-100';
     const qadaCls = current === 'qada' ? 'bg-rose-500 text-white font-bold shadow-md' : 'border-rose-200 text-rose-600 bg-rose-50 hover:bg-rose-100';
 
@@ -604,7 +604,7 @@ function renderQadaVault() {
     const activeQadas = globalState.qadaVault.filter(q => !q.completed);
     
     if (activeQadas.length === 0) {
-        container.innerHTML = '<div class="text-xs text-gray-400 italic">No pending Qada prayers. Alhamdulillah!</div>';
+        container.innerHTML = '<div class="text-xs text-gray-600 italic">No pending Qada prayers. Alhamdulillah!</div>';
         return;
     }
     
@@ -814,12 +814,12 @@ function renderLedger() {
                     <i class="ph-bold ${icon}"></i>
                 </div>
                 <div class="flex flex-col">
-                    <span class="text-xs font-bold text-gray-800 ${item.settled ? 'line-through text-gray-400' : ''}">${item.name}</span>
+                    <span class="text-xs font-bold text-gray-800 ${item.settled ? 'line-through text-gray-600' : ''}">${item.name}</span>
                     <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">${typeText}</span>
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <span class="text-xs font-black text-${color}-600 ${item.settled ? 'line-through text-gray-400' : ''}">₹${item.amount.toLocaleString('en-IN', {minimumFractionDigits:2})}</span>
+                <span class="text-xs font-black text-${color}-600 ${item.settled ? 'line-through text-gray-600' : ''}">₹${item.amount.toLocaleString('en-IN', {minimumFractionDigits:2})}</span>
                 <button onclick="window.toggleLedger(${index})" class="text-gray-300 hover:text-sky-500 transition-colors"><i class="ph-fill ph-check-circle text-lg"></i></button>
                 <button onclick="window.removeLedger(${index})" class="text-gray-300 hover:text-rose-500 transition-colors"><i class="ph-fill ph-trash text-lg"></i></button>
             </div>
@@ -853,8 +853,8 @@ function initTodos() {
             li.className = 'flex items-center gap-3 bg-white/60 p-3 rounded-xl border border-white/80 shadow-sm';
             li.innerHTML = `
                 <input type="checkbox" class="w-5 h-5 accent-sky-500 rounded cursor-pointer shadow-sm" ${todo.done ? 'checked' : ''} onchange="window.toggleTodo(${index})">
-                <span class="flex-1 text-sm font-bold text-gray-700 ${todo.done ? 'line-through text-gray-400' : ''}">${todo.text}</span>
-                <button onclick="window.removeTodo(${index})" class="text-gray-400 hover:text-rose-500 transition-colors"><i class="ph-fill ph-trash text-lg"></i></button>
+                <span class="flex-1 text-sm font-bold text-gray-700 ${todo.done ? 'line-through text-gray-600' : ''}">${todo.text}</span>
+                <button onclick="window.removeTodo(${index})" class="text-gray-600 hover:text-rose-500 transition-colors"><i class="ph-fill ph-trash text-lg"></i></button>
             `;
             list.appendChild(li);
         });
