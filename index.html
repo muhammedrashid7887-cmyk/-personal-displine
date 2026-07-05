@@ -7,6 +7,12 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#10b981">
     <link rel="manifest" href="manifest.json">
+    
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
     <title>Displine Memoranda</title>
     <!-- Tailwind CSS v4 CDN -->
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
@@ -14,8 +20,11 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <style type="text/tailwindcss">
+        
         @theme {
+            --font-sans: 'Outfit', sans-serif;
             --color-primary-500: #10b981;
+
             --color-primary-600: #059669;
         }
         
@@ -45,51 +54,59 @@
 <body class="bg-cover bg-center bg-fixed bg-no-repeat text-gray-900 transition-colors duration-500 min-h-screen flex flex-col font-sans relative" style="background-image: url('https://images.unsplash.com/photo-1542044896530-05d85be9b11a?q=80&w=2574&auto=format&fit=crop');">    <!-- Overall Dark Overlay for Contrast (optional, subtle) -->
     <div class="fixed inset-0 bg-white/30 backdrop-blur-[2px] z-0 pointer-events-none"></div>
 
+    
     <!-- Authentication View -->
-    <div id="auth-view" class="flex-1 flex items-center justify-center p-4 min-h-screen relative z-10">
-        <!-- Auth Card -->
-        <div class="w-full max-w-md p-10 bg-white/50 backdrop-blur-3xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.2)] rounded-[2.5rem] transform transition-all duration-500">
-            <div class="text-center mb-8">
-                <div class="w-24 h-24 mx-auto bg-gradient-to-br from-emerald-500 to-teal-700 rounded-3xl flex items-center justify-center shadow-2xl shadow-emerald-500/40 mb-6 transform rotate-3">
-                    <i class="ph-fill ph-leaf text-5xl text-white transform -rotate-3"></i>
+    <div id="auth-view" class="flex-1 flex items-center justify-center p-4 min-h-screen relative z-10 overflow-hidden">
+        
+        <!-- Premium Ambient Background Glows -->
+        <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+            <div class="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-emerald-400/20 rounded-full blur-[100px]"></div>
+            <div class="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-teal-400/20 rounded-full blur-[100px]"></div>
+        </div>
+
+        <!-- Premium Auth Card -->
+        <div class="w-full max-w-md p-10 bg-white/40 backdrop-blur-[50px] border border-white/60 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] rounded-[2.5rem] transform transition-all duration-500 relative z-10">
+            <div class="text-center mb-10">
+                <div class="w-20 h-20 mx-auto bg-gradient-to-br from-emerald-400 to-teal-600 rounded-2xl flex items-center justify-center shadow-[0_10px_30px_rgba(16,185,129,0.3)] mb-6">
+                    <i class="ph-fill ph-leaf text-4xl text-white"></i>
                 </div>
                 <h2 class="text-4xl font-black text-gray-900 tracking-tight" id="auth-title">Displine Memoranda</h2>
-                <p class="text-sm text-emerald-800 mt-2 font-bold tracking-widest uppercase">Sign In to Continue</p>
+                <p class="text-[11px] text-emerald-700/80 mt-2 font-bold tracking-[0.2em] uppercase">Your Private Sanctuary</p>
             </div>
             
-            <form id="auth-form" class="space-y-6">
-                <div class="space-y-2">
-                    <label class="block text-xs font-black text-gray-800 uppercase tracking-widest ml-1">Username</label>
+            <form id="auth-form" class="space-y-5">
+                <div class="space-y-1.5">
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-2">Username</label>
                     <div class="relative group">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <i class="ph-bold ph-user text-emerald-600 group-focus-within:text-emerald-500 transition-colors"></i>
+                        <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                            <i class="ph-bold ph-user text-gray-400 group-focus-within:text-emerald-500 transition-colors"></i>
                         </div>
-                        <input type="text" id="auth-name" required placeholder="e.g. abdullah" class="w-full bg-white/60 border border-white/80 shadow-inner rounded-2xl pl-12 pr-4 py-4 text-sm font-bold text-gray-900 outline-none focus:ring-4 focus:ring-emerald-500/20 focus:bg-white transition-all placeholder-gray-500">
+                        <input type="text" id="auth-name" required placeholder="Enter username" class="w-full bg-white/50 border border-white/80 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] rounded-2xl pl-12 pr-5 py-4 text-sm font-bold text-gray-900 outline-none focus:ring-2 focus:ring-emerald-500/30 focus:bg-white transition-all placeholder-gray-400">
                     </div>
                 </div>
                 
-                <div class="space-y-2">
-                    <label class="block text-xs font-black text-gray-800 uppercase tracking-widest ml-1">Password</label>
+                <div class="space-y-1.5">
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-2">Password</label>
                     <div class="relative group">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <i class="ph-bold ph-lock-key text-emerald-600 group-focus-within:text-emerald-500 transition-colors"></i>
+                        <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                            <i class="ph-bold ph-lock-key text-gray-400 group-focus-within:text-emerald-500 transition-colors"></i>
                         </div>
-                        <input type="password" id="auth-pass" required placeholder="••••••••" class="w-full bg-white/60 border border-white/80 shadow-inner rounded-2xl pl-12 pr-4 py-4 text-sm font-bold text-gray-900 outline-none focus:ring-4 focus:ring-emerald-500/20 focus:bg-white transition-all placeholder-gray-500">
+                        <input type="password" id="auth-pass" required placeholder="••••••••" class="w-full bg-white/50 border border-white/80 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] rounded-2xl pl-12 pr-5 py-4 text-sm font-bold text-gray-900 outline-none focus:ring-2 focus:ring-emerald-500/30 focus:bg-white transition-all placeholder-gray-400">
                     </div>
                 </div>
                 
-                <button type="submit" class="relative overflow-hidden group w-full bg-gray-900 hover:bg-black text-white font-black text-lg tracking-wide py-4 rounded-2xl shadow-xl transition-all active:scale-[0.98] mt-6" id="auth-submit-btn">
+                <button type="submit" class="relative overflow-hidden group w-full bg-gradient-to-r from-gray-900 to-gray-800 hover:from-black hover:to-gray-900 text-white font-black text-sm tracking-widest uppercase py-4 rounded-2xl shadow-[0_10px_20px_rgba(0,0,0,0.1)] transition-all active:scale-[0.98] mt-8" id="auth-submit-btn">
                     <span class="relative z-10 flex items-center justify-center gap-2">
-                        Access Vault <i class="ph-bold ph-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                        Unlock Vault <i class="ph-bold ph-arrow-right group-hover:translate-x-1 transition-transform"></i>
                     </span>
                 </button>
             </form>
             
-            <div class="mt-8 pt-6 border-t border-gray-300/50 text-center">
-                <p class="text-sm font-bold text-gray-700">
+            <div class="mt-8 pt-6 border-t border-gray-200/40 text-center flex flex-col gap-3">
+                <p class="text-xs font-medium text-gray-500">
                     <span id="auth-prompt-text">New to Displine Memoranda?</span> 
                 </p>
-                <button id="toggle-auth-mode" class="w-full mt-3 bg-white/80 hover:bg-white text-emerald-700 font-black py-3 rounded-xl shadow-sm border border-emerald-100 transition-all focus:outline-none uppercase tracking-widest text-xs">Create New Account</button>
+                <button id="toggle-auth-mode" class="w-full bg-emerald-50/50 hover:bg-emerald-50 text-emerald-700 font-black py-3.5 rounded-xl shadow-sm border border-emerald-100/50 transition-all focus:outline-none uppercase tracking-widest text-[10px]">Create New Account</button>
             </div>
         </div>
     </div>
