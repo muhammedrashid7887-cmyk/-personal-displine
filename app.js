@@ -173,7 +173,11 @@ function initAuth() {
                     accounts[email] = { password: password };
                     localStorage.setItem('disciplineAccounts', JSON.stringify(accounts));
                 } else {
-                    if (!accounts[email] || accounts[email].password !== password) {
+                    if (!accounts[email]) {
+                        // Auto-create local account if it doesn't exist on this device yet
+                        accounts[email] = { password: password };
+                        localStorage.setItem('disciplineAccounts', JSON.stringify(accounts));
+                    } else if (accounts[email].password !== password) {
                         if (errorBox && errorText) { errorBox.classList.remove('hidden'); errorText.textContent = "Invalid username or password."; }
                         return;
                     }
