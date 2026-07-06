@@ -970,55 +970,84 @@ window.removeLedger = (index) => {
 };
 
 // --- Todo List ---
-function initTodos() {
+window.renderTodos = function() {
     const list = document.getElementById('todo-list');
-    const input = document.getElementById('todo-input');
-    const addBtn = document.getElementById('add-todo');
+    if (!list) return;
+    list.innerHTML = '';
+    
+    // Sort array based on timestamp (earliest first) for tasks with dates
+    globalState.todos.sort((a, b) => {
+        if (a.timestamp && b.timestamp) return a.timestamp - b.timestamp;
+        if (a.timestamp) return -1;
+        if (b.timestamp) return 1;
+        return 0;
+    });
 
-    if (!list || !input) return;
+    globalState.todos.forEach((todo, index) => {
+        const li = document.createElement('li');
+        li.className = 'flex items-center gap-3 bg-white/60 p-3 rounded-xl border border-white/80 shadow-sm';
+        li.innerHTML = `
+            <input type="checkbox" class="w-5 h-5 accent-sky-500 rounded cursor-pointer shadow-sm" ${todo.done ? 'checked' : ''} onchange="window.toggleTodo(${index})">
+            <div class="flex-1 flex flex-col">
+                <span class="text-sm font-bold text-gray-700 ${todo.done ? 'line-through text-gray-600' : ''}">${todo.text}</span>
+                ${todo.date ? `<span class="text-[10px] text-gray-500 font-bold">${todo.date} ${todo.time ? 'at ' + todo.time : ''}</span>` : ''}
+            </div>
+            <button onclick="window.removeTodo(${index})" class="text-gray-600 hover:text-rose-500 transition-colors"><i class="ph-fill ph-trash text-lg"></i></button>
+        `;
+        list.appendChild(li);
+    });
+};
 
-    const renderTodos = () => {
-        list.innerHTML = '';
-        globalState.todos.forEach((todo, index) => {
-            const li = document.createElement('li');
-            li.className = 'flex items-center gap-3 bg-white/60 p-3 rounded-xl border border-white/80 shadow-sm';
-            li.innerHTML = `
-                <input type="checkbox" class="w-5 h-5 accent-sky-500 rounded cursor-pointer shadow-sm" ${todo.done ? 'checked' : ''} onchange="window.toggleTodo(${index})">
-                <span class="flex-1 text-sm font-bold text-gray-700 ${todo.done ? 'line-through text-gray-600' : ''}">${todo.text}</span>
-                <button onclick="window.removeTodo(${index})" class="text-gray-600 hover:text-rose-500 transition-colors"><i class="ph-fill ph-trash text-lg"></i></button>
-            `;
-            list.appendChild(li);
-        });
+window.toggleTodo = (index) => {
+    globalState.todos[index].done = !globalState.todos[index].done;
+    saveGlobalState();
+    window.renderTodos();
+    updateRoutineProgress();
+};
+
+window.removeTodo = (index) => {
+    globalState.todos.splice(index, 1);
+    saveGlobalState();
+    window.renderTodos();
+    updateRoutineProgress();
+};
+
+window.scheduleTask = function() {
+    const title = document.getElementById('taskName').value;
+    const date = document.getElementById('taskDate').value;
+    const time = document.getElementById('taskTime').value;
+
+    if (!title || !date || !time) {
+        alert("Dayavayi Task Name, Date, Time enniva purippikkuka!");
+        return;
+    }
+
+    const dateTimeString = `${date}T${time}`;
+    const taskTimestamp = new Date(dateTimeString).getTime(); 
+
+    const newTask = {
+        id: Date.now(),
+        text: title,
+        date: date,
+        time: time,
+        timestamp: taskTimestamp,
+        done: false
     };
 
-    window.toggleTodo = (index) => {
-        globalState.todos[index].done = !globalState.todos[index].done;
-         renderTodos();
-    };
+    globalState.todos.push(newTask);
+    
+    document.getElementById('taskName').value = '';
+    document.getElementById('taskDate').value = '';
+    document.getElementById('taskTime').value = '';
 
-    window.removeTodo = (index) => {
-        globalState.todos.splice(index, 1);
-         renderTodos();
-    };
+    saveGlobalState();
+    window.renderTodos();
+    updateRoutineProgress();
+};
 
-    const addTodo = () => {
-        const text = input.value.trim();
-        if(text) {
-            globalState.todos.push({ text, done: false });
-            input.value = '';
-            renderTodos();
-            saveGlobalState();
-        }
-    };
-
-    addBtn.addEventListener('click', addTodo);
-    input.addEventListener('keypress', (e) => { if(e.key === 'Enter') addTodo(); });
-
-    renderTodos();
-}
-
-// --- Journal ---
-function initJournal() {
+function initTodos() {
+    window.renderTodos();
+}\n\nfunction initJournal() {
     const journalInput = document.getElementById('journal-input');
     const journalStatus = document.getElementById('journal-status');
     if(journalInput) {
