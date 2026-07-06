@@ -775,8 +775,12 @@ function initFinance() {
                 type,
                 amount,
                 desc,
-                date: getTodayDate()
+                date: selectedDate
             });
+            
+            globalState.bankBalance = (globalState.bankBalance || 0) + (type === 'income' ? amount : -amount);
+            saveGlobalState();
+            
             amtInput.value = '';
             descInput.value = '';
             updateFinanceDisplay();
@@ -849,7 +853,10 @@ function initFinance() {
 }
 
 function updateFinanceDisplay() {
-    const today = getTodayDate();
+    const bbEl = document.getElementById('total-bank-balance');
+    if (bbEl) bbEl.textContent = '₹' + (globalState.bankBalance || 0).toLocaleString('en-IN', {minimumFractionDigits:2});
+
+    const today = selectedDate;
     let income = 0;
     let expense = 0;
 
@@ -899,6 +906,7 @@ function renderTransactions() {
         el.innerHTML = `
             <div class="flex flex-col">
                 <span class="text-xs font-bold text-gray-800">${t.desc}</span>
+                <span class="text-[9px] font-bold text-gray-500 tracking-wider uppercase">${t.date}</span>
                   <span class="text-[9px] font-bold text-gray-500 tracking-wider uppercase">${t.date}</span>
             </div>
             <div class="flex items-center gap-3">
@@ -911,10 +919,16 @@ function renderTransactions() {
 }
 
 window.removeTransaction = (id) => {
+    const tx = dailyState.finances.transactions.find(t => t.id === id);
+    if(tx) {
+        globalState.bankBalance = (globalState.bankBalance || 0) + (tx.type === 'income' ? -tx.amount : tx.amount);
+        saveGlobalState();
+    }
     dailyState.finances.transactions = dailyState.finances.transactions.filter(t => t.id !== id);
     
     updateFinanceDisplay();
     renderTransactions();
+    commitDailyProgress();
 };
 
 function renderLedger() {
