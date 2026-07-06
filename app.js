@@ -1,3 +1,6 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // 1. Getting today's date for transactions (DD/MM/YYYY)
 function getFormattedDate(d) {
@@ -18,17 +21,14 @@ const firebaseConfig = {
 };
 
 let auth, db;
-let useLocalStorageFallback = true;
 
 try {
-    if (typeof firebase !== 'undefined') {
-        firebase.initializeApp(firebaseConfig);
-        auth = firebase.auth();
-        db = firebase.firestore();
-        console.log("Firebase initialized. Waiting for Auth state...");
-    }
+    const app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    console.log("Firebase initialized. Waiting for Auth state...");
 } catch (e) {
-    console.error("Firebase init error. Falling back to local storage.", e);
+    console.error("Firebase init error.", e);
 }
 
 // --- App State ---
@@ -122,10 +122,12 @@ function initAuth() {
             currentUser = { uid: session };
             showDashboard();
         }
-    } else if (typeof auth !== 'undefined' && auth) {
-        auth.onAuthStateChanged((user) => {
+    if (typeof auth !== 'undefined' && auth) {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
+                await fetchGlobalData();
+                await fetchDailyData(selectedDate);
                 showDashboard();
             } else {
                 currentUser = null;
@@ -162,54 +164,18 @@ function initAuth() {
                 email = rawName.toLowerCase().replace(/[^a-z0-9]/g, '') + '@displine.local';
             }
 
-            if (useLocalStorageFallback) {
-                let accounts = JSON.parse(localStorage.getItem('disciplineAccounts') || '{}');
-                
-                if (!isLoginMode) {
-                    if (accounts[email]) {
-                        if (errorBox && errorText) { errorBox.classList.remove('hidden'); errorText.textContent = "Account already exists! Please Sign In."; }
-                        return;
-                    }
-                    accounts[email] = { password: password };
-                    localStorage.setItem('disciplineAccounts', JSON.stringify(accounts));
-                } else {
-                    if (!accounts[email]) {
-                        // Auto-create local account if it doesn't exist on this device yet
-                        accounts[email] = { password: password };
-                        localStorage.setItem('disciplineAccounts', JSON.stringify(accounts));
-                    } else if (accounts[email].password !== password) {
-                        if (errorBox && errorText) { errorBox.classList.remove('hidden'); errorText.textContent = "Invalid username or password."; }
-                        return;
-                    }
-                }
-
-                const rememberMe = document.getElementById('auth-remember')?.checked;
-                if (rememberMe) {
-                    localStorage.setItem('disciplineSession', email);
-                } else {
-                    sessionStorage.setItem('disciplineSession', email);
-                }
-                currentUser = { uid: email };
-                nameInput.value = ''; passInput.value = '';
-                showDashboard();
-                return;
-            }
-
             try {
                 const rememberMe = document.getElementById('auth-remember')?.checked;
-                if (typeof firebase !== 'undefined' && auth) {
-                    await auth.setPersistence(
-                        rememberMe ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION
-                    );
+                if (typeof auth !== 'undefined' && auth) {
+                    await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
                 }
 
                 if (!isLoginMode) {
-                    await auth.createUserWithEmailAndPassword(email, password);
-                    nameInput.value = ''; passInput.value = '';
+                    await createUserWithEmailAndPassword(auth, email, password);
                 } else {
-                    await auth.signInWithEmailAndPassword(email, password);
-                    nameInput.value = ''; passInput.value = '';
+                    await signInWithEmailAndPassword(auth, email, password);
                 }
+                nameInput.value = ''; passInput.value = '';
             } catch (error) {
                 console.error('Auth Error:', error);
                 if(errorBox && errorText) {
@@ -224,12 +190,8 @@ function initAuth() {
 
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
-            if (useLocalStorageFallback) {
-                localStorage.removeItem('disciplineSession');
-                sessionStorage.removeItem('disciplineSession');
-                location.reload();
-            } else if (typeof auth !== 'undefined' && auth) {
-                auth.signOut().then(() => location.reload());
+            if (typeof auth !== 'undefined' && auth) {
+                signOut(auth).then(() => location.reload());
             }
         });
     }
@@ -254,66 +216,40 @@ function initAuth() {
 
 async function saveGlobalState() {
     if (!currentUser) return;
-    if (useLocalStorageFallback) {
-        localStorage.setItem(`disciplineGlobal_${currentUser.uid}`, JSON.stringify(globalState));
-    } else {
-        try {
-            await db.collection('users').doc(currentUser.uid).collection('global').doc('data').set(globalState, { merge: true });
-        } catch (e) { console.error('Error saving global state', e); }
-    }
+    try {
+        await setDoc(doc(db, 'users', currentUser.uid, 'globalData', 'data'), globalState, { merge: true });
+    } catch (e) { console.error('Error saving global state', e); }
 }
 
-async function loadData() {
-    if (useLocalStorageFallback) {
-        const gSaved = localStorage.getItem(`disciplineGlobal_${currentUser.uid}`);
-        if (gSaved) {
-            
-            let parsed = {};
-            try {
-                parsed = JSON.parse(gSaved);
-                if (typeof parsed !== 'object' || parsed === null) parsed = {};
-            } catch(e) { console.error("Corrupted global state, resetting"); }
-
-            globalState = { ...defaultGlobalState, ...parsed };
+async function fetchGlobalData() {
+    if (!currentUser) return;
+    try {
+        const gDoc = await getDoc(doc(db, 'users', currentUser.uid, 'globalData', 'data'));
+        if (gDoc.exists()) {
+            globalState = { ...defaultGlobalState, ...gDoc.data() };
+        } else {
+            globalState = JSON.parse(JSON.stringify(defaultGlobalState));
         }
-        const dSaved = localStorage.getItem(`disciplineDaily_${currentUser.uid}_${selectedDate}`);
-        if (dSaved) {
-            
-            let parsed = {};
-            try {
-                parsed = JSON.parse(dSaved);
-                if (typeof parsed !== 'object' || parsed === null) parsed = {};
-            } catch(e) { console.error("Corrupted daily state, resetting"); }
+    } catch (e) { console.error('Error fetching global state', e); }
+}
 
+async function fetchDailyData(dateStr) {
+    if (!currentUser) return;
+    try {
+        const dDoc = await getDoc(doc(db, 'users', currentUser.uid, 'dailyLogs', dateStr));
+        if (dDoc.exists()) {
+            const parsed = dDoc.data();
             dailyState = { ...defaultDailyState, ...parsed, spiritual: { ...defaultDailyState.spiritual, ...parsed.spiritual } };
         } else {
             dailyState = JSON.parse(JSON.stringify(defaultDailyState));
         }
-    } else {
-        try {
-            const gDoc = await db.collection('users').doc(currentUser.uid).collection('global').doc('data').get();
-            if (gDoc.exists) globalState = { ...defaultGlobalState, ...gDoc.data() };
-            
-            const dDoc = await db.collection('users').doc(currentUser.uid).collection('dailyLogs').doc(selectedDate).get();
-            if (dDoc.exists) {
-                const parsed = dDoc.data();
-                dailyState = { ...defaultDailyState, ...parsed, spiritual: { ...defaultDailyState.spiritual, ...parsed.spiritual } };
-            } else {
-                dailyState = JSON.parse(JSON.stringify(defaultDailyState));
-            }
-        } catch (e) { console.error(e); }
-    }
+    } catch (e) { console.error('Error fetching daily state', e); }
 }
-
 
 async function commitDailyProgress() {
     if (!currentUser) return;
     try {
-        if (useLocalStorageFallback) {
-            localStorage.setItem(`disciplineDaily_${currentUser.uid}_${selectedDate}`, JSON.stringify(dailyState));
-        } else {
-            await db.collection('users').doc(currentUser.uid).collection('dailyLogs').doc(selectedDate).set(dailyState, { merge: true });
-        }
+        await setDoc(doc(db, 'users', currentUser.uid, 'dailyLogs', selectedDate), dailyState, { merge: true });
         
         const rate = calculateCompletionRate();
         const hIdx = globalState.history.findIndex(h => h.date === selectedDate);
@@ -371,11 +307,11 @@ function renderDateSlider() {
         const isSelected = (dStr === selectedDate);
         
         const card = document.createElement('div');
-        card.className = `flex flex-col items-center justify-center flex-1 min-w-[2rem] sm:min-w-[4rem] py-1.5 sm:py-3 rounded-xl sm:rounded-2xl cursor-pointer transition-all \${isSelected ? 'bg-gradient-to-b from-gray-900 to-black shadow-xl scale-110 border border-gray-700 z-10' : 'bg-white/70 hover:bg-white border border-white/80'}`;
+        card.className = `flex flex-col items-center justify-center flex-1 min-w-[2rem] sm:min-w-[4rem] py-1.5 sm:py-3 rounded-xl sm:rounded-2xl cursor-pointer transition-all ${isSelected ? 'bg-gradient-to-b from-gray-900 to-black shadow-xl scale-110 border border-gray-700 z-10' : 'bg-white/70 hover:bg-white border border-white/80'}`;
         
         card.innerHTML = `
-            <span class="text-[8px] sm:text-[10px] font-black uppercase tracking-wider \${isSelected ? 'text-emerald-400' : 'text-gray-500'}">${dayName}</span>
-            <span class="text-base sm:text-2xl font-black \${isSelected ? 'text-white' : 'text-gray-900'}">${dateNum}</span>
+            <span class="text-[8px] sm:text-[10px] font-black uppercase tracking-wider ${isSelected ? 'text-emerald-400' : 'text-gray-500'}">${dayName}</span>
+            <span class="text-base sm:text-2xl font-black ${isSelected ? 'text-white' : 'text-gray-900'}">${dateNum}</span>
         `;
         
         card.addEventListener('click', () => {
@@ -412,7 +348,7 @@ async function changeDate(newDateStr) {
     // Adjust slider center if selected date is out of bounds (optional, but let's keep slider center where it is unless explicitly changed)
     renderDateSlider();
 
-    await loadData();
+    await fetchDailyData(newDateStr);
     initDashboard();
 }
 
@@ -424,7 +360,7 @@ async function showDashboard() {
     
     document.getElementById('save-progress-btn').addEventListener('click', commitDailyProgress);
 
-    await changeDate(todayStr);
+    initDashboard();
 }
 
 
