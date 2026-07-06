@@ -278,7 +278,7 @@ async function commitDailyProgress() {
         if (useLocalStorageFallback) {
             localStorage.setItem(`disciplineDaily_${currentUser.uid}_${selectedDate}`, JSON.stringify(dailyState));
         } else {
-            await db.collection('users').doc(currentUser.uid).collection('daily').doc(selectedDate).set(dailyState, { merge: true });
+            await db.collection('users').doc(currentUser.uid).collection('dailyLogs').doc(selectedDate).set(dailyState, { merge: true });
         }
         
         const rate = calculateCompletionRate();
@@ -594,8 +594,18 @@ function initSpiritual() {
 }
 
 window.setPrayerState = (key, status) => {
-    // If setting to Qada, push to ledger
+    const oldStatus = dailyState.spiritual[key];
     dailyState.spiritual[key] = status;
+    
+    if (status === 'qada' && oldStatus !== 'qada') {
+        globalState.qadaVault.push({
+            name: key.replace(/([A-Z])/g, ' $1').trim().replace(/^./, str => str.toUpperCase()),
+            date: selectedDate,
+            completed: false
+        });
+        saveGlobalState();
+    }
+    commitDailyProgress();
     
     renderPrayerState(key);
     renderQadaVault();
