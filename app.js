@@ -1,3 +1,12 @@
+
+// 1. Getting today's date for transactions (DD/MM/YYYY)
+function getFormattedDate(d) {
+    return d.toLocaleDateString('en-GB');
+}
+function getTodayDate() {
+    return getFormattedDate(new Date());
+}
+
 // --- Firebase Configuration (Placeholder) ---
 const firebaseConfig = {
     apiKey: "AIzaSyDummyKeyForNowPleaseReplace",
@@ -441,11 +450,11 @@ function renderCalendar() {
 
     // Days of the month
     for (let i = 1; i <= daysInMonth; i++) {
-        const cellDateStr = new Date(year, month, i).toLocaleDateString('en-US');
+        const cellDateStr = getFormattedDate(new Date(year, month, i));
         const historyEntry = globalState.history.find(h => h.date === cellDateStr);
         
         // If it's today, we use current real-time completion rate
-        const isToday = today.toLocaleDateString('en-US') === cellDateStr;
+        const isToday = getTodayDate() === cellDateStr;
         let rate = null;
 
         if (isToday) {
@@ -488,7 +497,7 @@ function updateAnalytics() {
     for (let i = 6; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);
-        const dStr = d.toLocaleDateString('en-US');
+        const dStr = getFormattedDate(d);
         const dayLabel = dayNames[d.getDay()];
         
         const hist = globalState.history.find(h => h.date === dStr);
@@ -766,7 +775,7 @@ function initFinance() {
                 type,
                 amount,
                 desc,
-                date: new Date().toLocaleDateString('en-US')
+                date: getTodayDate()
             });
             amtInput.value = '';
             descInput.value = '';
@@ -813,7 +822,7 @@ function initFinance() {
                 amount: amt,
                 type: type, // 'payable' or 'receivable'
                 settled: false,
-                date: new Date().toLocaleDateString('en-US')
+                date: getTodayDate()
             });
             lName.value = '';
             lAmt.value = '';
@@ -840,7 +849,7 @@ function initFinance() {
 }
 
 function updateFinanceDisplay() {
-    const today = new Date().toLocaleDateString('en-US');
+    const today = getTodayDate();
     let income = 0;
     let expense = 0;
 
@@ -868,7 +877,7 @@ function renderTransactions() {
     const emptyMsg = document.getElementById('empty-transactions');
     if (!container) return;
 
-    const today = new Date().toLocaleDateString('en-US');
+    const today = getTodayDate();
     const todayTxs = dailyState.finances.transactions.filter(t => t.date === today);
 
     if(todayTxs.length === 0) {
