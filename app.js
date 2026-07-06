@@ -1047,7 +1047,9 @@ window.scheduleTask = function() {
 
 function initTodos() {
     window.renderTodos();
-}\n\nfunction initJournal() {
+}
+
+function initJournal() {
     const journalInput = document.getElementById('journal-input');
     const journalStatus = document.getElementById('journal-status');
     if(journalInput) {
