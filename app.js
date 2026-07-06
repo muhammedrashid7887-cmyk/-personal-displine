@@ -878,7 +878,7 @@ function renderTransactions() {
     if (!container) return;
 
     const today = getTodayDate();
-    const todayTxs = dailyState.finances.transactions.filter(t => t.date === today);
+    const todayTxs = dailyState.finances.transactions.filter(t => t.date === selectedDate);
 
     if(todayTxs.length === 0) {
         emptyMsg.classList.remove('hidden');
@@ -899,6 +899,7 @@ function renderTransactions() {
         el.innerHTML = `
             <div class="flex flex-col">
                 <span class="text-xs font-bold text-gray-800">${t.desc}</span>
+                  <span class="text-[9px] font-bold text-gray-500 tracking-wider uppercase">${t.date}</span>
             </div>
             <div class="flex items-center gap-3">
                 <span class="text-sm font-black text-${color}-600">${sign}₹${t.amount.toLocaleString('en-IN')}</span>
