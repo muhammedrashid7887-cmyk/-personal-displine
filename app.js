@@ -809,7 +809,46 @@ function initFinance() {
             });
             amtInput.value = '';
             descInput.value = '';
-            updateFinanceDisplay();
+        
+    // Ledger Logic
+    const lName = document.getElementById('ledger-name');
+    const lAmt = document.getElementById('ledger-amount');
+    const lPayBtn = document.getElementById('add-payable');
+    const lRecBtn = document.getElementById('add-receivable');
+
+    const addLedgerEntry = (type) => {
+        if(!lName || !lAmt) return;
+        const name = lName.value.trim();
+        const amt = parseFloat(lAmt.value);
+        if(name && !isNaN(amt) && amt > 0) {
+            globalState.ledger.push({
+                name,
+                amount: amt,
+                type: type, // 'payable' or 'receivable'
+                settled: false,
+                date: new Date().toLocaleDateString('en-US')
+            });
+            lName.value = '';
+            lAmt.value = '';
+            renderLedger();
+            saveGlobalState();
+        }
+    };
+
+    if (lPayBtn) lPayBtn.onclick = () => addLedgerEntry('payable');
+    if (lRecBtn) lRecBtn.onclick = () => addLedgerEntry('receivable');
+
+    const handleLedgerEnter = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addLedgerEntry('payable');
+        }
+    };
+    if (lName) lName.onkeypress = handleLedgerEnter;
+    if (lAmt) lAmt.onkeypress = handleLedgerEnter;
+    
+    // Original update routines...
+    updateFinanceDisplay();
             renderTransactions();
             commitDailyProgress();
         }
