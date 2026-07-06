@@ -749,47 +749,8 @@ function renderSavingsVault() {
     barEl.style.width = pct + '%';
 }
 
+
 function initFinance() {
-
-    renderSavingsVault();
-    
-    // Savings Logic
-    const setGoalBtn = document.getElementById('edit-savings-goal');
-    if (setGoalBtn) {
-        setGoalBtn.onclick = () => {
-            const newGoal = prompt('Enter new savings goal:');
-            if (newGoal && !isNaN(newGoal)) {
-                globalState.savings.goal = parseFloat(newGoal);
-                renderSavingsVault();
-                saveGlobalState();
-            }
-        };
-    }
-    
-    const svAmtInput = document.getElementById('savings-input');
-    const svAddBtn = document.getElementById('add-savings');
-    
-    const addSavings = () => {
-        if(!svAmtInput) return;
-        const amt = parseFloat(svAmtInput.value);
-        if(!isNaN(amt) && amt > 0) {
-            globalState.savings.current += amt;
-            svAmtInput.value = '';
-            renderSavingsVault();
-            saveGlobalState();
-        }
-    };
-    if (svAddBtn) svAddBtn.onclick = addSavings;
-    if (svAmtInput) {
-        svAmtInput.onkeypress = (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                addSavings();
-            }
-        };
-    }
-
-    
     const addIncBtn = document.getElementById('add-income');
     const addExpBtn = document.getElementById('add-expense');
     const amtInput = document.getElementById('tx-amount');
@@ -809,7 +770,33 @@ function initFinance() {
             });
             amtInput.value = '';
             descInput.value = '';
-        
+            updateFinanceDisplay();
+            renderTransactions();
+            commitDailyProgress();
+        }
+    };
+
+    if (addIncBtn) {
+        const newAddInc = addIncBtn.cloneNode(true);
+        addIncBtn.parentNode.replaceChild(newAddInc, addIncBtn);
+        newAddInc.addEventListener('click', () => addTransaction('income'));
+    }
+    
+    if (addExpBtn) {
+        const newAddExp = addExpBtn.cloneNode(true);
+        addExpBtn.parentNode.replaceChild(newAddExp, addExpBtn);
+        newAddExp.addEventListener('click', () => addTransaction('expense'));
+    }
+
+    const handleTxEnter = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addTransaction('expense');
+        }
+    };
+    if (amtInput) amtInput.onkeypress = handleTxEnter;
+    if (descInput) descInput.onkeypress = handleTxEnter;
+
     // Ledger Logic
     const lName = document.getElementById('ledger-name');
     const lAmt = document.getElementById('ledger-amount');
@@ -846,25 +833,6 @@ function initFinance() {
     };
     if (lName) lName.onkeypress = handleLedgerEnter;
     if (lAmt) lAmt.onkeypress = handleLedgerEnter;
-    
-    // Original update routines...
-    updateFinanceDisplay();
-            renderTransactions();
-            commitDailyProgress();
-        }
-    };
-
-    if (addIncBtn) {
-        const newAddInc = addIncBtn.cloneNode(true);
-        addIncBtn.parentNode.replaceChild(newAddInc, addIncBtn);
-        newAddInc.addEventListener('click', () => addTransaction('income'));
-    }
-    
-    if (addExpBtn) {
-        const newAddExp = addExpBtn.cloneNode(true);
-        addExpBtn.parentNode.replaceChild(newAddExp, addExpBtn);
-        newAddExp.addEventListener('click', () => addTransaction('expense'));
-    }
     
     updateFinanceDisplay();
     renderTransactions();
