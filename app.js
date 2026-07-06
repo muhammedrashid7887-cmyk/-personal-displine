@@ -117,7 +117,7 @@ function initAuth() {
     let isLoginMode = true;
 
     if (useLocalStorageFallback) {
-        const session = localStorage.getItem('disciplineSession');
+        const session = localStorage.getItem('disciplineSession') || sessionStorage.getItem('disciplineSession');
         if (session) {
             currentUser = { uid: session };
             showDashboard();
@@ -179,7 +179,12 @@ function initAuth() {
                     }
                 }
 
-                localStorage.setItem('disciplineSession', email);
+                const rememberMe = document.getElementById('auth-remember')?.checked;
+                if (rememberMe) {
+                    localStorage.setItem('disciplineSession', email);
+                } else {
+                    sessionStorage.setItem('disciplineSession', email);
+                }
                 currentUser = { uid: email };
                 nameInput.value = ''; passInput.value = '';
                 showDashboard();
@@ -187,6 +192,13 @@ function initAuth() {
             }
 
             try {
+                const rememberMe = document.getElementById('auth-remember')?.checked;
+                if (typeof firebase !== 'undefined' && auth) {
+                    await auth.setPersistence(
+                        rememberMe ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION
+                    );
+                }
+
                 if (!isLoginMode) {
                     await auth.createUserWithEmailAndPassword(email, password);
                     nameInput.value = ''; passInput.value = '';
@@ -210,9 +222,27 @@ function initAuth() {
         logoutBtn.addEventListener('click', () => {
             if (useLocalStorageFallback) {
                 localStorage.removeItem('disciplineSession');
+                sessionStorage.removeItem('disciplineSession');
                 location.reload();
             } else if (typeof auth !== 'undefined' && auth) {
                 auth.signOut().then(() => location.reload());
+            }
+        });
+    }
+
+    const togglePasswordBtn = document.getElementById('toggle-password');
+    const togglePasswordIcon = document.getElementById('toggle-password-icon');
+    
+    if (togglePasswordBtn && passInput) {
+        togglePasswordBtn.addEventListener('click', () => {
+            const type = passInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passInput.setAttribute('type', type);
+            if (type === 'text') {
+                togglePasswordIcon.classList.remove('ph-eye');
+                togglePasswordIcon.classList.add('ph-eye-slash');
+            } else {
+                togglePasswordIcon.classList.remove('ph-eye-slash');
+                togglePasswordIcon.classList.add('ph-eye');
             }
         });
     }
