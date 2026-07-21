@@ -81,8 +81,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     await fetchGlobalData();
     await fetchDailyData(selectedDate);
     
-    document.getElementById('auth-view').classList.add('hidden');
-    document.getElementById('dashboard-view').classList.remove('hidden');
+    
+    
     sliderCenterDate = new Date();
     document.getElementById('save-progress-btn').addEventListener('click', commitDailyProgress);
     
@@ -390,8 +390,8 @@ async function changeDate(newDateStr) {
 }
 
 async function showDashboard() {
-    document.getElementById('auth-view').classList.add('hidden');
-    document.getElementById('dashboard-view').classList.remove('hidden');
+    
+    
     
     sliderCenterDate = new Date(); // Reset to today
     
