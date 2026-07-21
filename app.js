@@ -73,8 +73,20 @@ let selectedDate = todayStr;
 
 
 // --- Initialization ---
-document.addEventListener('DOMContentLoaded', () => {
-    initAuth();
+document.addEventListener('DOMContentLoaded', async () => {
+    // Bypass login, use local offline user
+    currentUser = { uid: 'local_offline_user' };
+    
+    // Load local data and show dashboard
+    await fetchGlobalData();
+    await fetchDailyData(selectedDate);
+    
+    document.getElementById('auth-view').classList.add('hidden');
+    document.getElementById('dashboard-view').classList.remove('hidden');
+    sliderCenterDate = new Date();
+    document.getElementById('save-progress-btn').addEventListener('click', commitDailyProgress);
+    
+    initDashboard();
     initTabs();
 });
 
@@ -240,34 +252,35 @@ function initAuth() {
 
 async function saveGlobalState() {
     if (!currentUser) return;
-    try {
-        await setDoc(doc(db, 'users', currentUser.uid, 'globalData', 'data'), globalState, { merge: true });
-    } catch (e) { console.error('Error saving global state', e); }
+    localStorage.setItem(`disciplineGlobal_${currentUser.uid}`, JSON.stringify(globalState));
 }
 
 async function fetchGlobalData() {
     if (!currentUser) return;
-    try {
-        const gDoc = await getDoc(doc(db, 'users', currentUser.uid, 'globalData', 'data'));
-        if (gDoc.exists()) {
-            globalState = { ...defaultGlobalState, ...gDoc.data() };
-        } else {
-            globalState = JSON.parse(JSON.stringify(defaultGlobalState));
-        }
-    } catch (e) { console.error('Error fetching global state', e); }
+    const gSaved = localStorage.getItem(`disciplineGlobal_${currentUser.uid}`);
+    if (gSaved) {
+        try {
+            let parsed = JSON.parse(gSaved);
+            if (typeof parsed !== 'object' || parsed === null) parsed = {};
+            globalState = { ...defaultGlobalState, ...parsed };
+        } catch(e) { globalState = JSON.parse(JSON.stringify(defaultGlobalState)); }
+    } else {
+        globalState = JSON.parse(JSON.stringify(defaultGlobalState));
+    }
 }
 
 async function fetchDailyData(dateStr) {
     if (!currentUser) return;
-    try {
-        const dDoc = await getDoc(doc(db, 'users', currentUser.uid, 'dailyLogs', dateStr));
-        if (dDoc.exists()) {
-            const parsed = dDoc.data();
+    const dSaved = localStorage.getItem(`disciplineDaily_${currentUser.uid}_${dateStr}`);
+    if (dSaved) {
+        try {
+            let parsed = JSON.parse(dSaved);
+            if (typeof parsed !== 'object' || parsed === null) parsed = {};
             dailyState = { ...defaultDailyState, ...parsed, spiritual: { ...defaultDailyState.spiritual, ...parsed.spiritual } };
-        } else {
-            dailyState = JSON.parse(JSON.stringify(defaultDailyState));
-        }
-    } catch (e) { console.error('Error fetching daily state', e); }
+        } catch(e) { dailyState = JSON.parse(JSON.stringify(defaultDailyState)); }
+    } else {
+        dailyState = JSON.parse(JSON.stringify(defaultDailyState));
+    }
 }
 
 async function commitDailyProgress() {
